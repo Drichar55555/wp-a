@@ -119,3 +119,31 @@ Follow the 10-step sequence in section 12 of the dev doc. Each step has explicit
 
 ## What NOT to build (v1.0 exclusions)
 Server accounts, login/registration, comments, likes, social links, pairing algorithms, notifications, server-side favorites. None of these.
+
+## Pitfalls (from development session 2026-06-24)
+
+### Prisma v6 config structure
+- `prisma.config.ts` is separate from `schema.prisma` — both must be updated.
+- Generator uses `provider = "prisma-client"` (not `"prisma-client-js"`).
+- Generator output is `../app/generated/prisma` — import from `@/app/generated/prisma/client`.
+- `directUrl` goes in `prisma.config.ts`, not in `schema.prisma`.
+- `prisma db execute` in v6 needs explicit `--url` flag.
+
+### create-next-app conflicts
+- If AGENTS.md or README.md already exist, `create-next-app` refuses to scaffold. Move them to /tmp first, scaffold, then move back.
+
+### npm install timeout
+- Mac ARM + Neon npm registry can be slow. Give `npm install` at least 300s timeout.
+
+### Admin page agent output
+- Agent-generated JSX can have unclosed conditional blocks (`{cond && (` missing `)}`). Always build-check after agent output.
+- Agent may create extra API routes (like `/api/admin/persons`) not in the spec — verify they're needed before keeping.
+
+### handleSave PATCH body
+- The edit page agent failed to include `avatarUrl` in the PATCH body. When someone uploads an avatar then hits Save, the avatar URL must be sent alongside other fields. Server checks `body.avatarUrl || person.avatarUrl` — if neither is set, publish is blocked.
+
+### R2 lazy initialization
+- `S3Client` instantiated at module top-level crashes the entire app if R2 env vars are missing. Use a lazy `getS3()` function that throws only at call time — the rest of the app stays functional without R2 configured.
+
+### @types/qrcode install
+- First `npm install -D @types/qrcode` can fail silently (package not found). Verify with `ls node_modules/@types/qrcode` after install.

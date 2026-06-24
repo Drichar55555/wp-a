@@ -23,9 +23,27 @@
 
 ### 前置条件
 
-- Node.js 18+
-- Neon PostgreSQL 数据库
-- Cloudflare R2 存储桶
+- **Node.js 18+** — [nodejs.org](https://nodejs.org) 下载 LTS 版
+- **Neon PostgreSQL 数据库** — [neon.tech](https://neon.tech) 免费注册
+- **Cloudflare R2 存储桶** — [dash.cloudflare.com](https://dash.cloudflare.com) 登录后左侧 R2
+
+### Windows 特别注意
+
+Windows 下推荐用 **Git Bash**（装 Git 时自带）或 **PowerShell**：
+
+```bash
+# Git Bash / PowerShell 通用
+cp .env.example .env        # PowerShell 用 copy .env.example .env
+npm install
+npx prisma migrate dev
+npm run dev
+```
+
+如果 `npx prisma` 报权限错误，用管理员身份打开终端。如果 `npm install` 超时（国内网络），先设镜像：
+
+```bash
+npm config set registry https://registry.npmmirror.com
+```
 
 ### 环境变量
 
@@ -157,4 +175,5 @@ prisma/
 
 - [PRD – 产品需求文档](docs/01_PRD_OWeek个人主页系统_v1.0.md)
 - [开发文档 – 接口契约与构建顺序](docs/02_开发文档_OWeek个人主页系统_v1.0.md)
+- [操作手册 – 新人接手指南](docs/03_操作手册.md)
 - [AGENTS.md](AGENTS.md) – coding agent 工作规范
