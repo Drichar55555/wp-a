@@ -54,6 +54,8 @@ app/
     admin/location/route.ts
     admin/takedown/route.ts
     admin/export/route.ts
+    admin/settings/route.ts  # GET/PATCH 系统设置(仅管理员)
+    settings/route.ts        # GET 公开读单个设置(编辑页用)
 lib/
   prisma.ts                  # Prisma client 单例(避免 serverless 连接爆)
   r2.ts                      # R2 S3 client + presign
@@ -113,6 +115,11 @@ model LocationCard {
   seat      String                           // 座位码
   updatedAt DateTime @updatedAt
 }
+
+model SystemSetting {
+  key   String @id          // 设置键名
+  value String              // 设置值(字符串形式存储)
+}
 ```
 
 ## 5. 身份与权限
@@ -150,6 +157,8 @@ GET /api/me?token=...
 PATCH /api/me?token=...
   body { englishName?, chineseName?, grade?, bio?, avatarUrl?, published? }
   校验:bio 按 code point 计 ≤ 80;published 置 true 时 avatarUrl 必须有值
+  注意:published 字段的修改受系统设置 allowStudentPublishControl 控制,
+        管理员未开启时返回 403
   → 200 { ok } | 400 | 403
 
 POST /api/upload-url?token=...
@@ -180,15 +189,26 @@ POST /api/admin/takedown  (cookie)
 
 GET /api/admin/export  (cookie)
   → 200 表格,每行:name, /u/code, /loc/code, /edit/token(用 APP_BASE_URL 拼全)
+
+GET /api/admin/settings  (cookie)
+  → 200 { [key]: value, ... }  // 所有系统设置的键值对
+
+PATCH /api/admin/settings  (cookie)
+  body { key, value }
+  → 200 { ok } | 400 | 401
+
+GET /api/settings?key=...
+  公开接口,读取单个系统设置值(如 allowStudentPublishControl)
+  → 200 { value: "true" | "false" | null }
 ```
 
 ## 9. 页面渲染要点
 
 - /u/[code]:server component 直接查库渲染。hidden 或未 published 显示占位页,不白屏。图片 1:1 缩略,点开全屏用客户端灯箱组件,可滑动。
 - /loc/[code]:server component。房间号座位码做大做显眼。带客户端收藏按钮。默认不放主页链接(见 PRD 第 11 节,翻起来就是加一个跳 /u/code 的按钮)。
-- /edit/[token]:client。表单 + 图片上传组件 + 发布开关。保存即时校验 bio 字数、发布前校验头像。
+- /edit/[token]:client。表单 + 图片上传组件 + 发布开关(仅管理员在系统设置中开启后才显示)。保存即时校验 bio 字数、发布前校验头像。
 - /me/collection:client。读 localStorage 渲染列表,链到 /loc/code。
-- /admin:client。登录后三块:导入、位置编辑、下架、导出。
+- /admin:client。登录后五块:导入、位置编辑、下架、导出、系统设置。
 
 ## 10. 收藏(纯前端)
 
