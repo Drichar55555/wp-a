@@ -1,0 +1,99 @@
+import { prisma } from '@/lib/prisma'
+import ImageGallery from './ImageGallery'
+
+interface PageProps {
+  params: Promise<{ code: string }>
+}
+
+export default async function ProfilePage({ params }: PageProps) {
+  const { code } = await params
+
+  const person = await prisma.person.findUnique({
+    where: { code },
+    include: {
+      images: {
+        where: { hidden: false },
+        orderBy: { sort: 'asc' },
+      },
+      location: true,
+    },
+  })
+
+  if (!person || person.hidden) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-6">
+        <div className="text-center max-w-xs">
+          <div className="text-5xl mb-5">🙈</div>
+          <h1 className="text-lg font-semibold text-zinc-900 mb-1.5">
+            该页面已隐藏
+          </h1>
+          <p className="text-sm text-zinc-500 leading-relaxed">
+            这位同学暂时关闭了个人主页
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!person.published) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-6">
+        <div className="text-center max-w-xs">
+          <div className="text-5xl mb-5">📝</div>
+          <h1 className="text-lg font-semibold text-zinc-900 mb-1.5">
+            这位同学还没布置主页
+          </h1>
+          <p className="text-sm text-zinc-500 leading-relaxed">
+            等他准备好了再来看看吧
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const displayImages = person.images.filter((img) => !img.hidden)
+
+  return (
+    <div className="min-h-screen bg-zinc-50">
+      <div className="max-w-md mx-auto px-5 py-12">
+        <div className="flex justify-center mb-5">
+          {person.avatarUrl ? (
+            <img
+              src={person.avatarUrl}
+              alt=""
+              className="w-24 h-24 rounded-full object-cover ring-2 ring-white shadow-md"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-zinc-200 flex items-center justify-center ring-2 ring-white shadow-md">
+              <span className="text-2xl text-zinc-400 font-medium">?</span>
+            </div>
+          )}
+        </div>
+
+        <h1 className="text-center text-xl font-semibold text-zinc-900 mb-1">
+          {person.englishName && <span>{person.englishName}</span>}
+          {person.englishName && person.chineseName && (
+            <span> · </span>
+          )}
+          {person.chineseName && <span>{person.chineseName}</span>}
+        </h1>
+
+        {person.grade && (
+          <p className="text-center text-sm text-zinc-500 mb-4">
+            {person.grade}
+          </p>
+        )}
+
+        {person.bio && (
+          <p className="text-center text-sm text-zinc-700 leading-relaxed mb-8 whitespace-pre-line">
+            {person.bio}
+          </p>
+        )}
+
+        {displayImages.length > 0 && (
+          <ImageGallery images={displayImages.map((img) => ({ id: img.id, url: img.url }))} />
+        )}
+      </div>
+    </div>
+  )
+}
