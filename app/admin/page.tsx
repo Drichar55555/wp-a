@@ -727,6 +727,7 @@ function SettingsSection() {
   }, []);
 
   const allowPublish = settings["allowStudentPublishControl"] === "true";
+  const hidePublishToggle = settings["hideStudentPublishToggle"] === "true";
 
   async function toggleSetting(key: string, value: string) {
     setSaving(key);
@@ -790,6 +791,40 @@ function SettingsSection() {
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                 allowPublish ? "translate-x-5" : "translate-x-0"
               } ${allowPublish ? "" : "dark:bg-zinc-400"}`}
+            />
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              隐藏学生端发布开关
+            </p>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              开启后，学生编辑页面不再显示 Published 开关。适用于在活动开始前隐藏发布功能，但仍允许学生编辑个人资料。
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hidePublishToggle}
+            disabled={saving === "hideStudentPublishToggle"}
+            onClick={() =>
+              toggleSetting(
+                "hideStudentPublishToggle",
+                hidePublishToggle ? "false" : "true"
+              )
+            }
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-zinc-500/20 focus:ring-offset-2 ${
+              hidePublishToggle ? "bg-zinc-900 dark:bg-zinc-100" : "bg-zinc-300 dark:bg-zinc-600"
+            } ${saving === "hideStudentPublishToggle" ? "cursor-not-allowed opacity-50" : ""}`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                hidePublishToggle ? "translate-x-5" : "translate-x-0"
+              } ${hidePublishToggle ? "" : "dark:bg-zinc-400"}`}
             />
           </button>
         </div>

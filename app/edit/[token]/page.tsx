@@ -41,6 +41,7 @@ export default function EditPage() {
   } | null>(null);
   const [dirty, setDirty] = useState(false);
   const [allowPublishControl, setAllowPublishControl] = useState(false);
+  const [hidePublishToggle, setHidePublishToggle] = useState(false);
 
   const bioCodePoints = [...(form.bio || "")].length;
   const bioOverLimit = bioCodePoints > 80;
@@ -82,12 +83,13 @@ export default function EditPage() {
   // ── Fetch system settings ──
 
   useEffect(() => {
-    fetch("/api/settings?key=allowStudentPublishControl")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.value === "true") {
-          setAllowPublishControl(true);
-        }
+    Promise.all([
+      fetch("/api/settings?key=allowStudentPublishControl").then(r => r.json()),
+      fetch("/api/settings?key=hideStudentPublishToggle").then(r => r.json()),
+    ])
+      .then(([pubData, hideData]) => {
+        if (pubData.value === "true") setAllowPublishControl(true);
+        if (hideData.value === "true") setHidePublishToggle(true);
       })
       .catch(() => {});
   }, []);
@@ -320,7 +322,7 @@ export default function EditPage() {
             onImagesChange={setImages}
           />
 
-          {allowPublishControl && (
+          {allowPublishControl && !hidePublishToggle && (
           <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">
             <div>
               <p className="text-sm font-medium text-stone-900">Published</p>

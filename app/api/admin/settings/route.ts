@@ -12,6 +12,15 @@ export async function GET() {
   for (const s of settings) {
     result[s.key] = s.value;
   }
+
+  const defaults: Record<string, string> = {
+    allowStudentPublishControl: "true",
+    hideStudentPublishToggle: "false",
+  };
+  for (const [k, v] of Object.entries(defaults)) {
+    if (!(k in result)) result[k] = v;
+  }
+
   return NextResponse.json(result);
 }
 
