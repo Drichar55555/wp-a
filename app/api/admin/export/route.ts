@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   });
 
   const header = "chineseName,englishName,homepage,location,edit";
-  const rows = persons.map((p) =>
+  const rows = persons.map((p: typeof persons[number]) =>
     [
       p.chineseName || "",
       p.englishName || "",

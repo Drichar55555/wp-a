@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
   },
   outputFileTracingIncludes: {
-    "/*": ["./app/generated/prisma/**/*"],
+    "/*": ["app/generated/prisma/**/*"],
   },
 };
 
