@@ -1,8 +1,19 @@
+import type { Metadata } from 'next'
 import { prisma } from "@/lib/prisma";
 import FavoriteButton from "./FavoriteButton";
 
 interface Props {
   params: Promise<{ code: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { code } = await params
+  const location = await prisma.locationCard.findUnique({
+    where: { code },
+    select: { name: true },
+  })
+  if (!location) return { title: '位置不存在' }
+  return { title: `${location.name}的位置` }
 }
 
 export default async function LocationCardPage({ params }: Props) {

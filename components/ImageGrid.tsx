@@ -13,12 +13,14 @@ interface ImageGridProps {
   token: string;
   images: DisplayImage[];
   onImagesChange: (images: DisplayImage[]) => void;
+  disabled?: boolean;
 }
 
 export default function ImageGrid({
   token,
   images,
   onImagesChange,
+  disabled = false,
 }: ImageGridProps) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,7 +111,7 @@ export default function ImageGrid({
         <p className="text-sm font-medium text-stone-700">
           Photos <span className="text-stone-400">({activeImages.length}/4)</span>
         </p>
-        {remaining > 0 && (
+        {remaining > 0 && !disabled && (
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -130,13 +132,15 @@ export default function ImageGrid({
                 alt=""
                 className="h-full w-full object-cover"
               />
-              <button
-                type="button"
-                onClick={() => handleDelete(img.id)}
-                className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ✕
-              </button>
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(img.id)}
+                  className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           ))}
           {uploading && (
@@ -145,6 +149,8 @@ export default function ImageGrid({
             </div>
           )}
         </div>
+      ) : disabled ? (
+        <p className="text-sm text-stone-400 py-4 text-center">No photos yet</p>
       ) : (
         <button
           type="button"

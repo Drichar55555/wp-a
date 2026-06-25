@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import AvatarUploader from "@/components/AvatarUploader";
 import ImageGrid from "@/components/ImageGrid";
 
@@ -42,6 +43,9 @@ export default function EditPage() {
   const [dirty, setDirty] = useState(false);
   const [allowPublishControl, setAllowPublishControl] = useState(false);
   const [hidePublishToggle, setHidePublishToggle] = useState(false);
+  const [hasBeenEdited, setHasBeenEdited] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [collectionCount, setCollectionCount] = useState(0);
 
   const bioCodePoints = [...(form.bio || "")].length;
   const bioOverLimit = bioCodePoints > 80;
@@ -72,6 +76,16 @@ export default function EditPage() {
           });
           setImages(data.images ?? []);
         }
+        const profileIsBlank = !(
+          p?.chineseName ||
+          p?.englishName ||
+          p?.grade ||
+          p?.bio ||
+          p?.avatarUrl ||
+          (data.images && data.images.length > 0)
+        );
+        setHasBeenEdited(!profileIsBlank);
+        setIsEditing(profileIsBlank);
         setLoading(false);
       })
       .catch((err) => {
@@ -92,6 +106,16 @@ export default function EditPage() {
         if (hideData.value === "true") setHidePublishToggle(true);
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("owk_collection");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setCollectionCount(parsed.length);
+      }
+    } catch {}
   }, []);
 
   const updateField = useCallback(
@@ -144,6 +168,8 @@ export default function EditPage() {
 
       setSaveMessage({ type: "success", text: "Saved!" });
       setDirty(false);
+      setHasBeenEdited(true);
+      setIsEditing(false);
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (err) {
       const message =
@@ -205,13 +231,35 @@ export default function EditPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100 py-8 px-4">
       <div className="mx-auto max-w-md">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900">
-            Edit Profile
-          </h1>
-          <p className="mt-1.5 text-sm text-stone-500">
-            Set up your OWeek personal homepage
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+              {isEditing ? "Edit Profile" : "My Profile"}
+            </h1>
+            <p className="mt-1.5 text-sm text-stone-500">
+              {isEditing
+                ? "Set up your OWeek personal homepage"
+                : "Your OWeek showcase"}
+            </p>
+          </div>
+          {hasBeenEdited && (
+            <button
+              type="button"
+              onClick={() => setIsEditing((v) => !v)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200 hover:text-stone-700"
+              aria-label={isEditing ? "Lock editing" : "Edit profile"}
+            >
+              {isEditing ? (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
 
         <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm">
@@ -219,150 +267,227 @@ export default function EditPage() {
             token={token}
             currentUrl={form.avatarUrl}
             onAvatarChange={(url) => updateField("avatarUrl", url)}
+            disabled={!isEditing}
           />
         </div>
 
+        {collectionCount > 0 && (
+          <Link
+            href="/me/collection"
+            className="mb-6 flex items-center gap-2 rounded-2xl bg-white p-4 shadow-sm text-sm font-medium text-stone-700 transition-colors hover:bg-rose-50 hover:text-rose-600"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+            </svg>
+            我的收藏 ({collectionCount})
+            <svg className="ml-auto h-4 w-4 text-stone-300" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </Link>
+        )}
+
         <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm">
+          {isEditing ? (
+            <>
+              {/* English Name */}
+              <div>
+                <label
+                  htmlFor="englishName"
+                  className="mb-1.5 block text-sm font-medium text-stone-700"
+                >
+                  English Name
+                </label>
+                <input
+                  id="englishName"
+                  type="text"
+                  value={form.englishName ?? ""}
+                  onChange={(e) => updateField("englishName", e.target.value)}
+                  placeholder="e.g. Alex"
+                  className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                />
+              </div>
 
-          {/* English Name */}
-          <div>
-            <label
-              htmlFor="englishName"
-              className="mb-1.5 block text-sm font-medium text-stone-700"
-            >
-              English Name
-            </label>
-            <input
-              id="englishName"
-              type="text"
-              value={form.englishName ?? ""}
-              onChange={(e) => updateField("englishName", e.target.value)}
-              placeholder="e.g. Alex"
-              className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-            />
-          </div>
+              {/* Chinese Name */}
+              <div>
+                <label
+                  htmlFor="chineseName"
+                  className="mb-1.5 block text-sm font-medium text-stone-700"
+                >
+                  Chinese Name
+                </label>
+                <input
+                  id="chineseName"
+                  type="text"
+                  value={form.chineseName ?? ""}
+                  onChange={(e) => updateField("chineseName", e.target.value)}
+                  placeholder="e.g. 张三"
+                  className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                />
+              </div>
 
-          {/* Chinese Name */}
-          <div>
-            <label
-              htmlFor="chineseName"
-              className="mb-1.5 block text-sm font-medium text-stone-700"
-            >
-              Chinese Name
-            </label>
-            <input
-              id="chineseName"
-              type="text"
-              value={form.chineseName ?? ""}
-              onChange={(e) => updateField("chineseName", e.target.value)}
-              placeholder="e.g. 张三"
-              className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-            />
-          </div>
+              {/* Grade */}
+              <div>
+                <label
+                  htmlFor="grade"
+                  className="mb-1.5 block text-sm font-medium text-stone-700"
+                >
+                  Grade
+                </label>
+                <input
+                  id="grade"
+                  type="text"
+                  value={form.grade ?? ""}
+                  onChange={(e) => updateField("grade", e.target.value)}
+                  placeholder="e.g. 2026"
+                  className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                />
+              </div>
 
-          {/* Grade */}
-          <div>
-            <label
-              htmlFor="grade"
-              className="mb-1.5 block text-sm font-medium text-stone-700"
-            >
-              Grade
-            </label>
-            <input
-              id="grade"
-              type="text"
-              value={form.grade ?? ""}
-              onChange={(e) => updateField("grade", e.target.value)}
-              placeholder="e.g. 2026"
-              className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-            />
-          </div>
+              {/* Bio */}
+              <div>
+                <label
+                  htmlFor="bio"
+                  className="mb-1.5 block text-sm font-medium text-stone-700"
+                >
+                  Bio
+                </label>
+                <textarea
+                  id="bio"
+                  value={form.bio ?? ""}
+                  onChange={(e) => updateField("bio", e.target.value)}
+                  rows={3}
+                  placeholder="Tell us a bit about yourself…"
+                  className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:outline-none focus:ring-2 ${
+                    bioOverLimit
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+                      : "border-stone-200 focus:border-teal-500 focus:ring-teal-500/20"
+                  }`}
+                />
+                <div className="mt-1.5 flex items-center justify-between">
+                  {bioOverLimit && (
+                    <p className="text-xs text-red-500">
+                      {bioCodePoints - 80} character{bioCodePoints - 80 > 1 ? "s" : ""} over limit
+                    </p>
+                  )}
+                  <span
+                    className={`ml-auto text-xs ${
+                      bioOverLimit
+                        ? "font-semibold text-red-500"
+                        : "text-stone-400"
+                    }`}
+                  >
+                    {bioCodePoints}/80
+                  </span>
+                </div>
+              </div>
 
-          {/* Bio */}
-          <div>
-            <label
-              htmlFor="bio"
-              className="mb-1.5 block text-sm font-medium text-stone-700"
-            >
-              Bio
-            </label>
-            <textarea
-              id="bio"
-              value={form.bio ?? ""}
-              onChange={(e) => updateField("bio", e.target.value)}
-              rows={3}
-              placeholder="Tell us a bit about yourself…"
-              className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-all focus:outline-none focus:ring-2 ${
-                bioOverLimit
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
-                  : "border-stone-200 focus:border-teal-500 focus:ring-teal-500/20"
-              }`}
-            />
-            <div className="mt-1.5 flex items-center justify-between">
-              {bioOverLimit && (
-                <p className="text-xs text-red-500">
-                  {bioCodePoints - 80} character{bioCodePoints - 80 > 1 ? "s" : ""} over limit
-                </p>
-              )}
-              <span
-                className={`ml-auto text-xs ${
-                  bioOverLimit
-                    ? "font-semibold text-red-500"
-                    : "text-stone-400"
-                }`}
-              >
-                {bioCodePoints}/80
-              </span>
-            </div>
-          </div>
-
-          <ImageGrid
-            token={token}
-            images={images}
-            onImagesChange={setImages}
-          />
-
-          {allowPublishControl && !hidePublishToggle && (
-          <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">
-            <div>
-              <p className="text-sm font-medium text-stone-900">Published</p>
-              <p className="mt-0.5 text-xs text-stone-500">
-                {canPublish
-                  ? "Make your profile visible to everyone"
-                  : "Avatar required before publishing"}
-              </p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={form.published}
-              disabled={!canPublish}
-              onClick={() => updateField("published", !form.published)}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 ${
-                form.published ? "bg-teal-600" : "bg-stone-300"
-              } ${!canPublish ? "cursor-not-allowed opacity-50" : ""}`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  form.published ? "translate-x-5" : "translate-x-0"
-                }`}
+              <ImageGrid
+                token={token}
+                images={images}
+                onImagesChange={setImages}
+                disabled={false}
               />
-            </button>
-          </div>
+
+              {allowPublishControl && !hidePublishToggle && (
+              <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">
+                <div>
+                  <p className="text-sm font-medium text-stone-900">Published</p>
+                  <p className="mt-0.5 text-xs text-stone-500">
+                    {canPublish
+                      ? "Make your profile visible to everyone"
+                      : "Avatar required before publishing"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.published}
+                  disabled={!canPublish}
+                  onClick={() => updateField("published", !form.published)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 ${
+                    form.published ? "bg-teal-600" : "bg-stone-300"
+                  } ${!canPublish ? "cursor-not-allowed opacity-50" : ""}`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      form.published ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+              )}
+            </>
+          ) : (
+            <>
+              {(form.chineseName || form.englishName) && (
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wider text-stone-400">Name</p>
+                  <p className="text-sm text-stone-900">
+                    {[form.englishName, form.chineseName].filter(Boolean).join(" / ")}
+                  </p>
+                </div>
+              )}
+              {form.grade && (
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wider text-stone-400">Grade</p>
+                  <p className="text-sm text-stone-900">{form.grade}</p>
+                </div>
+              )}
+              {form.bio && (
+                <div>
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wider text-stone-400">Bio</p>
+                  <p className="text-sm leading-relaxed text-stone-700 whitespace-pre-wrap">{form.bio}</p>
+                </div>
+              )}
+              <ImageGrid
+                token={token}
+                images={images}
+                onImagesChange={setImages}
+                disabled={true}
+              />
+              {!hidePublishToggle && (
+                <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">
+                  <p className="text-sm font-medium text-stone-900">Published</p>
+                  <span
+                    className={`inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent ${
+                      form.published ? "bg-teal-600" : "bg-stone-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition ${
+                        form.published ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Save button */}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saveDisabled}
-          className="mt-6 w-full rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-teal-700 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
+        {isEditing && (
+          <>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saveDisabled}
+              className="mt-6 w-full rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-teal-700 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
 
-        {/* Feedback */}
+            {hasBeenEdited && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="mt-2 w-full rounded-xl bg-stone-100 px-6 py-3 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-200"
+              >
+                Cancel
+              </button>
+            )}
+          </>
+        )}
+
         {saveMessage && (
           <div className="mt-4 text-center">
             <p
@@ -378,8 +503,7 @@ export default function EditPage() {
           </div>
         )}
 
-        {/* Footer hint */}
-        {!dirty && !saveMessage && (
+        {!dirty && !saveMessage && isEditing && (
           <p className="mt-6 text-center text-xs text-stone-400">
             Changes are auto-saved when you press Save
           </p>

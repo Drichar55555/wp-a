@@ -7,12 +7,14 @@ interface AvatarUploaderProps {
   token: string;
   currentUrl: string | null;
   onAvatarChange: (url: string | null) => void;
+  disabled?: boolean;
 }
 
 export default function AvatarUploader({
   token,
   currentUrl,
   onAvatarChange,
+  disabled = false,
 }: AvatarUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,8 +67,8 @@ export default function AvatarUploader({
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        disabled={uploading}
-        className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-stone-100 ring-2 ring-stone-200 hover:ring-teal-400 transition-colors disabled:opacity-50"
+        disabled={uploading || disabled}
+        className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-stone-100 ring-2 ring-stone-200 transition-colors disabled:opacity-50 ${disabled ? "cursor-default" : "hover:ring-teal-400"}`}
       >
         {currentUrl ? (
           <img
@@ -95,7 +97,9 @@ export default function AvatarUploader({
       <div>
         <p className="text-sm font-medium text-stone-900">Avatar</p>
         <p className="mt-0.5 text-xs text-stone-400">
-          {uploading
+          {disabled
+            ? ""
+            : uploading
             ? "Uploading…"
             : currentUrl
             ? "Tap to change"

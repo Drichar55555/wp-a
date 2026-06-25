@@ -1,8 +1,19 @@
+import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import ImageGallery from './ImageGallery'
 
 interface PageProps {
   params: Promise<{ code: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { code } = await params
+  const person = await prisma.person.findUnique({
+    where: { code },
+    select: { chineseName: true, hidden: true },
+  })
+  if (!person || person.hidden) return { title: '页面不存在' }
+  return { title: `${person.chineseName || code}的主页` }
 }
 
 export default async function ProfilePage({ params }: PageProps) {
