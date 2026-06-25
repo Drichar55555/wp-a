@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import ImageGallery from './ImageGallery'
 
@@ -67,6 +68,20 @@ export default async function ProfilePage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-md mx-auto px-5 py-12">
+        <div className="flex justify-end mb-2">
+          <Link
+            href={`/loc/${code}`}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm text-zinc-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
+            aria-label="View position"
+            title="查看展位"
+          >
+            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <title>View position</title>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+            </svg>
+          </Link>
+        </div>
         <div className="flex justify-center mb-5">
           {person.avatarUrl ? (
             <img
