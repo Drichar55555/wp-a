@@ -71,6 +71,17 @@ technically rigorous — this constraint applies only to user-facing communicati
 Delegate sub-tasks without asking the user when they are parallel, independent,
 and clearly scoped. Don't ask permission to delegate — just do it.
 
+## Escalation Stop Rule (HARD)
+
+**After 3 failed attempts at any deployment/build fix**, you MUST do TWO things BEFORE the 4th attempt:
+
+1. Invoke `agent-loop-guard` skill — let it audit whether you are in a loop
+2. Consult Oracle with full error context — before making any more edits
+
+A "failed attempt" = any edit + deploy cycle that does not resolve the original error. Different config values for the same hypothesis count as ONE attempt.
+
+This rule exists because of a real escalation failure on 2026-06-25: 8 cycles were spent on "Prisma engine binary not found on Vercel" before the fix was found. The root cause was recognized by attempt 2, but 6 more cycles were wasted rotating through variations of the same class of fix. An Oracle consult at cycle 4 would have saved 20+ minutes.
+
 ## Verification criteria
 
 Define completion criteria before starting. Verify against them before delivery.
