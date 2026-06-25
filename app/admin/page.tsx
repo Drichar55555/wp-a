@@ -215,7 +215,12 @@ function Dashboard({ tab, onTabChange }: { tab: TabId; onTabChange: (t: TabId) =
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <h1 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">运营后台</h1>
         </div>
-        <nav className="mx-auto flex max-w-5xl gap-0 px-4">
+        <nav
+          className="mx-auto flex max-w-5xl gap-0 overflow-x-auto px-4
+            [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+            after:pointer-events-none after:absolute after:right-0 after:top-0 after:z-10 after:h-full after:w-8 after:bg-gradient-to-l after:from-white after:to-transparent
+            dark:after:from-zinc-900/80 relative"
+        >
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -308,7 +313,7 @@ function ImportSection() {
         className="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-500 focus:ring-1 focus:ring-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:border-zinc-400"
       />
 
-      <div className="flex gap-2">
+       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={handleParse}
@@ -333,21 +338,21 @@ function ImportSection() {
 
       {rows.length > 0 && !result && (
         <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <table className="w-full text-left text-sm">
+          <table className="min-w-[480px] w-full text-left text-sm">
             <thead className="bg-zinc-100 dark:bg-zinc-800">
               <tr>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">英文名</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">中文名</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">年级</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">英文名</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">中文名</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">年级</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {rows.map((r, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: parsed CSV rows have no stable id
                 <tr key={"row-" + i} className="bg-white dark:bg-zinc-900">
-                  <td className="px-3 py-2 text-zinc-900 dark:text-zinc-100">{r.englishName}</td>
-                  <td className="px-3 py-2 text-zinc-900 dark:text-zinc-100">{r.chineseName}</td>
-                  <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{r.grade}</td>
+                  <td className="px-2 py-2 text-zinc-900 sm:px-3 dark:text-zinc-100">{r.englishName}</td>
+                  <td className="px-2 py-2 text-zinc-900 sm:px-3 dark:text-zinc-100">{r.chineseName}</td>
+                  <td className="px-2 py-2 text-zinc-500 sm:px-3 dark:text-zinc-400">{r.grade}</td>
                 </tr>
               ))}
             </tbody>
@@ -361,24 +366,24 @@ function ImportSection() {
             成功导入 {result.length} 人
           </p>
           <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[640px] w-full text-left text-sm">
               <thead className="bg-zinc-100 dark:bg-zinc-800">
                 <tr>
-                  <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">姓名</th>
-                  <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">短码</th>
-                  <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">编辑链接</th>
-                  <th className="px-3 py-2" />
+                  <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">姓名</th>
+                  <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">短码</th>
+                  <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">编辑链接</th>
+                  <th className="px-2 py-2 sm:px-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                 {result.map((p) => (
                   <tr key={p.code} className="bg-white dark:bg-zinc-900">
-                    <td className="px-3 py-2 text-zinc-900 dark:text-zinc-100">{p.chineseName}</td>
-                    <td className="px-3 py-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{p.code}</td>
-                    <td className="max-w-[200px] truncate px-3 py-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                    <td className="px-2 py-2 text-zinc-900 sm:px-3 dark:text-zinc-100">{p.chineseName}</td>
+                    <td className="px-2 py-2 font-mono text-xs text-zinc-500 sm:px-3 dark:text-zinc-400">{p.code}</td>
+                    <td className="max-w-[200px] truncate px-2 py-2 font-mono text-xs text-zinc-500 sm:px-3 dark:text-zinc-400">
                       {p.editToken}
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-2 py-2 sm:px-3">
                       <CopyButton value={window.location.origin + "/edit/" + p.editToken} label="复制链接" />
                     </td>
                   </tr>
@@ -433,7 +438,7 @@ function LocationSection() {
         使用学生短码编辑其位置信息（展位房间和座位号）。
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-3 max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-3 w-full max-w-md">
         <div>
           <label htmlFor="loc-code" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">学生短码 *</label>
           <input
@@ -594,9 +599,9 @@ function TakedownSection() {
         {filtered.map((person) => (
           <div
             key={person.id}
-            className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-lg border border-zinc-200 bg-white p-3 sm:p-4 dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-2">
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -692,7 +697,7 @@ function ExportSection() {
         <button
           type="button"
           onClick={handleDownload}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 sm:w-auto dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
         >
           下载 CSV
         </button>
@@ -706,35 +711,35 @@ function ExportSection() {
 
       {rows && rows.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <table className="w-full text-left text-sm">
+          <table className="min-w-[700px] w-full text-left text-sm">
             <thead className="bg-zinc-100 dark:bg-zinc-800">
               <tr>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">中文名</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">英文名</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">主页</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">位置页</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">编辑</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">中文名</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">英文名</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">主页</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">位置页</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">编辑</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {rows.map((r, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: export CSV rows have no stable id
                 <tr key={"exp-" + i} className="bg-white dark:bg-zinc-900">
-                  <td className="px-3 py-2 text-zinc-900 dark:text-zinc-100">{r.chineseName}</td>
-                  <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{r.englishName}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 py-2 text-zinc-900 sm:px-3 dark:text-zinc-100">{r.chineseName}</td>
+                  <td className="px-2 py-2 text-zinc-500 sm:px-3 dark:text-zinc-400">{r.englishName}</td>
+                  <td className="px-2 py-2 sm:px-3">
                     <span className="inline-flex items-center gap-1">
                       <CopyButton value={r.homepage} label="复制" />
                       <OpenLink href={r.homepage} />
                     </span>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 py-2 sm:px-3">
                     <span className="inline-flex items-center gap-1">
                       <CopyButton value={r.location} label="复制" />
                       <OpenLink href={r.location} />
                     </span>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 py-2 sm:px-3">
                     <span className="inline-flex items-center gap-1">
                       <CopyButton value={r.edit} label="复制" />
                       <OpenLink href={r.edit} />
@@ -777,7 +782,7 @@ function QRSection() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">QR 码生成</h2>
         <a
           href={persons.length > 0 ? printUrl : undefined}
@@ -790,7 +795,7 @@ function QRSection() {
             }
           }}
           className={
-            "inline-flex rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors " +
+            "inline-flex justify-center rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors sm:w-auto " +
             "bg-zinc-900 hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 " +
             (persons.length === 0
               ? "pointer-events-none opacity-40"
@@ -817,26 +822,26 @@ function QRSection() {
 
       {persons.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <table className="w-full text-left text-sm">
+          <table className="min-w-[480px] w-full text-left text-sm">
             <thead className="bg-zinc-100 dark:bg-zinc-800">
               <tr>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">#</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">姓名</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">短码</th>
-                <th className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-400">已发布</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">#</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">姓名</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">短码</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">已发布</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {persons.map((p, i) => (
                 <tr key={p.id} className="bg-white dark:bg-zinc-900">
-                  <td className="px-3 py-2 text-zinc-400">{i + 1}</td>
-                  <td className="px-3 py-2 text-zinc-900 dark:text-zinc-100">
+                  <td className="px-2 py-2 text-zinc-400 sm:px-3">{i + 1}</td>
+                  <td className="px-2 py-2 text-zinc-900 sm:px-3 dark:text-zinc-100">
                     {p.chineseName ?? "\u2014"}
                   </td>
-                  <td className="px-3 py-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                  <td className="px-2 py-2 font-mono text-xs text-zinc-500 sm:px-3 dark:text-zinc-400">
                     {p.code}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-2 py-2 sm:px-3">
                     {p.published ? (
                       <span className="text-emerald-600 dark:text-emerald-400 text-xs">是</span>
                     ) : (
