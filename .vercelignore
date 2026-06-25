@@ -18,3 +18,4 @@ yarn-error.log*
 next-env.d.ts
 .opencode
 .omo
+.sisyphus
