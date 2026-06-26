@@ -53,15 +53,12 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
     text: string;
   } | null>(null);
   const [dirty, setDirty] = useState(false);
-  const [allowPublishControl, setAllowPublishControl] = useState(false);
-  const [hidePublishToggle, setHidePublishToggle] = useState(false);
   const [hasBeenEdited, setHasBeenEdited] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [personCode, setPersonCode] = useState(initialPerson.code);
 
   const bioCodePoints = [...(form.bio || "")].length;
   const bioOverLimit = bioCodePoints > 80;
-  const canPublish = !!form.avatarUrl;
   const saveDisabled = saving || bioOverLimit;
 
   // ── Compute initial edit/lock state from server data ──
@@ -79,22 +76,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
     setIsEditing(profileIsBlank);
     setLoading(false);
   }, []);
-
-  // ── Fetch system settings ──
-
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/settings?key=allowStudentPublishControl").then(r => r.json()),
-      fetch("/api/settings?key=hideStudentPublishToggle").then(r => r.json()),
-    ])
-      .then(([pubData, hideData]) => {
-        if (pubData.value === "true") setAllowPublishControl(true);
-        if (hideData.value === "true") setHidePublishToggle(true);
-      })
-      .catch(() => {});
-  }, []);
-
-
 
   const updateField = useCallback(
     <K extends keyof PersonData>(field: K, value: PersonData[K]) => {
@@ -114,14 +95,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
       });
       return;
     }
-    if (form.published && !canPublish) {
-      setSaveMessage({
-        type: "error",
-        text: "Upload an avatar before publishing",
-      });
-      return;
-    }
-
     setSaving(true);
     setSaveMessage(null);
 
@@ -156,7 +129,7 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
     } finally {
       setSaving(false);
     }
-  }, [form, bioOverLimit, canPublish, bioCodePoints]);
+  }, [form, bioOverLimit, bioCodePoints]);
 
   // ── Loading state ──
 
@@ -371,34 +344,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
                 disabled={false}
               />
 
-              {allowPublishControl && !hidePublishToggle && (
-              <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">
-                <div>
-                  <p className="text-sm font-medium text-stone-900">Published</p>
-                  <p className="mt-0.5 text-xs text-stone-500">
-                    {canPublish
-                      ? "Make your profile visible to everyone"
-                      : "Avatar required before publishing"}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={form.published}
-                  disabled={!canPublish}
-                  onClick={() => updateField("published", !form.published)}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 ${
-                    form.published ? "bg-teal-600" : "bg-stone-300"
-                  } ${!canPublish ? "cursor-not-allowed opacity-50" : ""}`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      form.published ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              )}
             </>
           ) : (
             <>
@@ -428,22 +373,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
                 onImagesChange={setImages}
                 disabled={true}
               />
-              {!hidePublishToggle && (
-                <div className="flex items-center justify-between rounded-xl bg-stone-50 p-4">
-                  <p className="text-sm font-medium text-stone-900">Published</p>
-                  <span
-                    className={`inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent ${
-                      form.published ? "bg-teal-600" : "bg-stone-300"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition ${
-                        form.published ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </span>
-                </div>
-              )}
             </>
           )}
         </div>
