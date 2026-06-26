@@ -102,9 +102,9 @@ npm run dev               # 启动开发服务器 → http://localhost:3000
        │  Next.js App     │
        │  ┌─────────────┐ │
        │  │ /api/*      │ │
-       │  │ /u/[code]   │ │
-       │  │ /loc/[code]  │ │
-       │  │ /edit/[token]│ │
+        │  │ /me         │ │
+        │  │ /u/[code]   │ │
+        │  │ /loc/[code]  │ │
        │  │ /admin       │ │
        │  └─────────────┘ │
        └───┬───────┬──────┘
@@ -121,52 +121,64 @@ npm run dev               # 启动开发服务器 → http://localhost:3000
 
 ```
 app/
+  page.tsx                   # 首页：登录表单 + 管理员入口
+  LoginForm.tsx              # 登录表单（客户端）
+  me/
+    page.tsx                 # 个人中心：编辑主页 + 我的收藏
+    MeEditForm.tsx           # 编辑表单（客户端）
+    FavoritesList.tsx        # 我看见了谁列表（客户端）
   u/[code]/
-    page.tsx                 # 公开主页（SSR）
+    page.tsx                 # 公开主页（SSR，需登录）
     ImageLightbox.tsx         # 全屏灯箱（客户端）
     ImageGallery.tsx          # 图片网格 + 灯箱触发（客户端）
   loc/[code]/
-    page.tsx                 # 位置页（SSR）
-    FavoriteButton.tsx        # 收藏按钮（客户端，localStorage）
-  edit/[token]/page.tsx      # 编辑页（客户端，含头像+图片上传）
-  me/collection/page.tsx     # 本地收藏列表（客户端，localStorage）
+    page.tsx                 # 位置页（SSR，需登录）
+    FavoriteButton.tsx        # 收藏按钮（客户端，服务端数据）
   admin/page.tsx             # 运营后台（口令登录）
   api/
-    me/route.ts              # GET / PATCH 自己数据
+    auth/login/route.ts      # POST 学生登录 → session cookie
+    auth/logout/route.ts     # POST 清 session cookie
+    me/route.ts              # GET / PATCH 自己数据（session 鉴权）
     me/images/route.ts       # POST 保存 / DELETE 删除图片记录
     upload-url/route.ts      # POST 获取 R2 presigned PUT URL
+    favorites/route.ts       # POST 收藏/取消 toggle
+    me/favorites/route.ts    # GET 我收藏的人列表
     admin/login/route.ts     # POST 口令登录
-    admin/import/route.ts    # POST 批量导入名单
+    admin/import/route.ts    # POST 批量导入（生成账号密码）
     admin/location/route.ts  # POST 编辑位置页
     admin/takedown/route.ts  # POST 下架开关
-    admin/export/route.ts    # GET 导出 CSV 链接表
-    admin/persons/route.ts   # GET 所有人列表（下架面板用）
+    admin/export/route.ts    # GET 导出 CSV（含用户名、主页、展位链接）
+    admin/persons/route.ts   # GET 所有人列表
     admin/settings/route.ts  # GET/PATCH 系统设置
-    admin/qr/print/route.ts  # GET 批量打印 QR 码（SVG，A4 优化）
+    admin/reset-password/route.ts  # POST 重置学生密码
+    admin/qr/print/route.ts  # GET 批量打印 QR 码
     settings/route.ts        # GET 公开读单个设置
 components/
   AvatarUploader.tsx          # 头像上传（压缩 + presigned 直传）
   ImageGrid.tsx               # 多图上传网格（最多 4 张，含删除）
 lib/
   prisma.ts                  # Prisma client 单例
-  r2.ts                      # R2 S3 client + presigned URL（懒加载）
-  auth.ts                    # editToken 校验 / admin JWT session
-  code.ts                    # nanoid 短码 + 编辑 token 生成
-  qr.ts                      # 二维码生成（SVG / DataURL）
+  r2.ts                      # R2 S3 client + presigned URL
+  auth.ts                    # 学生 session / admin session / 密码哈希
+  code.ts                    # nanoid 短码 + 密码生成
+  qr.ts                      # 二维码生成
 prisma/
-  schema.prisma              # 数据模型（Person / Image / LocationCard / SystemSetting）
-  migrations/                # 数据库迁移文件
-app/generated/prisma/        # Prisma 生成客户端（含引擎二进制，已提交 git）
+  schema.prisma              # Person / Image / LocationCard / Favorite / SystemSetting
+  migrations/
+app/generated/prisma/        # Prisma 生成客户端（已提交 git）
 ```
 
 ## 核心设计决策
 
-- **无账号体系**：编辑凭 token URL，浏览者无身份，收藏存 localStorage
+- **账号体系**：学生凭用户名+密码登录，session cookie（httpOnly JWT，14 天）。编辑和收藏基于登录身份
+- **两套 cookie 独立**：`owk_session`（学生）和 `owk_admin`（运营）互不干扰
+- **收藏单向静默**：A 收藏 B，只有 A 能看到；B 不通知、不显示次数、不显示是谁
 - **图片直传 R2**：前端压缩后通过 presigned URL 直传，不经过服务端
 - **短码复用**：同一 `code` 同时服务于 `/u/{code}`（主页）和 `/loc/{code}`（位置页）
 - **位置页是兜底**：即使某人没布置主页，位置页依然在，保证平等曝光
-- **头像必填才可发布**：`published=true` 时必须有 `avatarUrl`
 - **bio 按 code point 计数**：上限 80，不是 byte 也不是 char
+- **密码不可逆**：存库的是 scrypt hash，明文只在生成/重置那一刻出现一次
+- **可见性由管理员控制**：默认所有人公开可见，管理员可选择开启学生自行控制主页可见性的开关
 
 ## 验证 Check
 

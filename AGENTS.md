@@ -4,9 +4,10 @@
 
 Read these before writing code:
 - `docs/01_PRD_OWeek个人主页系统_v1.0.md` — product spec, user flows, states
-- `docs/02_开发文档_OWeek个人主页系统_v1.0.md` — tech stack, data model, API contract, verification checklist
+- `docs/02_开发文档_OWeek个人主页系统_v1.0.md` — v1.0 tech stack, data model (historical reference)
+- `docs/04_开发文档_v2.0_账号系统迁移.md` — v2.0 account system spec (current executable target)
 
-The dev doc (02) is the executable spec. Follow it literally — it was written for agents.
+The v2.0 dev doc (04) is the current spec. It covers v1.0 constraints that remain valid. Follow it literally — it was written for agents.
 
 ## Working Philosophy
 
@@ -90,9 +91,9 @@ or a genuine blocker requires user input.
 
 ## Tech Stack (locked)
 
-Next.js App Router v15+, React, TypeScript, Prisma + Neon PostgreSQL, Cloudflare R2 (S3-compatible), Tailwind, browser-image-compression, nanoid, qrcode. Deploy on Vercel behind Cloudflare DNS.
+Next.js App Router v15+, React, TypeScript, Prisma + Neon PostgreSQL, Cloudflare R2 (S3-compatible), Tailwind, browser-image-compression, nanoid, qrcode, jose. Deploy on Vercel behind Cloudflare DNS.
 
-**Do not add unlisted frameworks or libraries.** The stack is frozen.
+**Do not add unlisted frameworks or libraries.** The stack is frozen. Password hashing uses Node built-in `node:crypto` scrypt — no bcrypt/argon2.
 
 ## Critical Gotchas (easy to miss)
 
@@ -101,39 +102,46 @@ Next.js App Router v15+, React, TypeScript, Prisma + Neon PostgreSQL, Cloudflare
 - `DIRECT_URL` — Neon direct (for `prisma migrate` only). Never use in app code.
 - Prisma client in `lib/prisma.ts` as singleton — serverless cold starts will exhaust connections without this.
 
-### Auth: Token-based, no accounts
-- Editing identity = `editToken` in the URL (`/edit/{token}`). No passwords, no sessions.
-- Admin = shared password → signed httpOnly cookie.
-- Browsers: no identity at all. Favorites are localStorage, no backend.
+### Auth: Session-based, two cookie systems
+- Student editing = `owk_session` httpOnly JWT cookie (14 days, jose HS256). Issued by `POST /api/auth/login` (username+password).
+- Admin = shared password → signed `owk_admin` httpOnly cookie (8 hours). Separate from student session; both systems coexist.
+- `editToken` column still exists (NOT NULL @unique), still generated on import, but `/edit/{token}` route is retired. Editing is through `/me` with session cookie.
+- Session cookie MUST be server-side `Set-Cookie` (never `document.cookie` or localStorage) — this is critical for Safari ITP survival over 10+ days.
+- Password hash uses Node built-in `node:crypto` scrypt + `timingSafeEqual`. Format: `"salt_hex:hash_hex"`.
+- Favorites are server-side (Favorite table), one-way (no "who favorited me" reads), no localStorage caching.
 
 ### Images: Presigned upload, not server passthrough
 1. Frontend compresses with `browser-image-compression` (≤1600px, ≤500KB, webp)
-2. Requests presigned PUT URL from `/api/upload-url` (server checks token + image count < 4)
+2. Requests presigned PUT URL from `/api/upload-url` (server checks session + image count < 4)
 3. PUTs directly to R2 — **never through server**
 4. POSTs `/api/me/images` to save the record
 5. Avatar uses same flow but stored on `Person.avatarUrl`, not counted toward the 4-image limit
 
 ### Short codes: shared between pages
-The same `Person.code` serves both `/u/{code}` (profile) and `/loc/{code}` (location card). Each person gets one code.
+The same `Person.code` serves both `/u/{code}` (profile) and `/loc/{code}` (location card). Each person gets one code. Default username = code.
 
 ### Validation quirks
 - `bio` counted by code points, not characters or bytes — cap at 80.
-- `published=true` blocked unless `avatarUrl` is set (avatar required before publishing).
 - Image count must be < 4 **and** verified server-side on both upload-url and image-save endpoints.
 
 ### System settings (stored in SystemSetting table, PATCH via `/api/admin/settings`)
-- `allowStudentPublishControl` — **defaults to "true"** (allow). When explicitly "false", students get 403 on `published: true`. Only checks on `published === true`, not `!== undefined`.
-- `hideStudentPublishToggle` — **defaults to "false"** (show the toggle). When "true", the Published switch is hidden from the student edit page UI entirely. This is UI-only; the server gate is still `allowStudentPublishControl`.
+- `allowStudentVisibilityControl` — **defaults to "false"** (disabled). When "true", students see a "主页可见" toggle and can switch between public/private.
+- When "false" (default): all pages public, no toggle. Server silently drops `published` from PATCH body — no 403.
 
 ### States ≠ pages
-- `hidden=true` or `published=false` → show placeholder page, not blank screen. "这位同学还没布置主页" or "已隐藏".
-- Location page loads regardless of whether the person has a profile — it's the fallback for equal exposure.
+- `hidden=true` → show "该页面已隐藏" placeholder, not blank screen.
+- `published=false` → show "这位同学还没布置主页" placeholder (only when visibility control enabled).
+- Both `/u/[code]` and `/loc/[code]` require login (session gate). Unauthenticated users redirect to `/?next=<path>`.
 
 ### Build order
-Follow the 10-step sequence in section 12 of the dev doc. Each step has explicit verification. Don't skip ahead.
+For v2.0, follow the 10-step sequence in section 11 of docs/04_开发文档_v2.0_账号系统迁移.md.
 
-## What NOT to build (v1.0 exclusions)
-Server accounts, login/registration, comments, likes, social links, pairing algorithms, notifications, server-side favorites. None of these.
+## What NOT to build (v2.0 exclusions)
+Comments, likes, social links, pairing algorithms, notifications, student self-service password reset.
+- Account login and server-side favorites: now built.
+- Password reset: admin-only, no student self-service.
+- "Who favorited me": never query `favoritesReceived`. It exists for cascade delete only.
+- No bcrypt/argon2 — use built-in `node:crypto` scrypt.
 
 ## Deployed URL
 Production: `https://oweek26.vercel.app` (Vercel, auto-deploys from `main` branch).
@@ -148,43 +156,47 @@ Production: `https://oweek26.vercel.app` (Vercel, auto-deploys from `main` branc
 - `prisma db execute` in v6 needs explicit `--url` flag.
 
 ### Vercel deployment: Prisma engine binary (2026-06-25)
-Three independent requirements for Prisma to work on Vercel serverless:
+1. **binaryTargets must include `rhel-openssl-3.0.x`**
+2. **Commit generated Prisma client to git** — Next.js output file tracing does not include `.node` engine binary.
+3. **`dotenv` must be in `dependencies`** (not `devDependencies`).
+4. **No `postinstall` script** — generated client is committed directly.
 
-1. **binaryTargets must include `rhel-openssl-3.0.x`** — Vercel runs on Amazon Linux 2023, not Debian. In `schema.prisma` generator block:
-   ```
-   binaryTargets = ["native", "rhel-openssl-3.0.x"]
-   ```
+### Prisma migrate with existing data (2026-06-26)
+When adding a NOT NULL column to a table with existing rows, `prisma migrate dev` will fail because it can't generate a default. Use `prisma db execute` to add the column as nullable, backfill with `UPDATE`, then set NOT NULL + unique constraint manually. Create the migration file and `_prisma_migrations` record after the fact.
 
-2. **Commit generated Prisma client to git** — Next.js output file tracing does not include the `.node` engine binary when output is at `app/generated/prisma/`. The only reliable fix: remove `/app/generated/prisma` from `.gitignore` and `.vercelignore`, commit the generated files (including both `libquery_engine-darwin-arm64.dylib.node` and `libquery_engine-rhel-openssl-3.0.x.so.node`). Vercel deploys them as regular source files, and Prisma finds the engine at runtime.
+### Session cookie: server httpOnly only (2026-06-26)
+Session cookie (`owk_session`) must be set via server `Set-Cookie` header, never via `document.cookie` or localStorage. iOS Safari ITP caps script-set cookies to 7 days, but server-set httpOnly cookies are exempt. The app runs for 10+ days and a single login must survive the full event.
 
-3. **`dotenv` must be in `dependencies`** (not `devDependencies`) — `prisma.config.ts` imports `dotenv/config`. On Vercel with `NODE_ENV=production`, `npm install` skips `devDependencies`, so `dotenv` would be missing and `prisma generate` would crash during `postinstall`. Since generated files are committed, `postinstall` is removed.
+### Password: plaintext only at generation (2026-06-26)
+Account passwords are 6-char scrypt hashes. The plaintext is returned ONCE during import (`/api/admin/import`) or reset (`/api/admin/reset-password`). Export (`/api/admin/export`) does NOT include passwords. No student self-service password recovery.
 
-4. **No `postinstall` script** — The generated client is committed directly. Adding `postinstall: "prisma generate"` would fail on Vercel without `dotenv` in `dependencies`, and is unnecessary since the committed files already contain the correct engine binary.
+### Favorites: one-way, no reverse reads (2026-06-26)
+`Favorite.favoriteeId` and `Person.favoritesReceived` exist ONLY for cascade delete. Never query "who favorited me" — this is a product hard-decision, not a performance optimization.
 
-### create-next-app conflicts
-- If AGENTS.md or README.md already exist, `create-next-app` refuses to scaffold. Move them to /tmp first, scaffold, then move back.
+### System settings gate: silent drop, not reject (2026-06-26)
+The original `v2.0` implementation rejected PATCH with 403 when `published` was in the body and the admin setting was OFF. This blocked ALL saves (including non-published edits). **Fix**: when the setting is OFF, the server silently drops `published` from the body. Students can always save; they just can't change visibility.
 
-### npm install timeout
-- Mac ARM + Neon npm registry can be slow. Give `npm install` at least 300s timeout.
+### Two cookie systems are independent (2026-06-26)
+`owk_session` (student, 14d) and `owk_admin` (admin, 8h) share zero code beyond both using jose JWT. Don't merge them or reuse secrets between them.
 
-### Admin page agent output
-- Agent-generated JSX can have unclosed conditional blocks (`{cond && (` missing `)}`). Always build-check after agent output.
-- Agent may create extra API routes (like `/api/admin/persons`) not in the spec — verify they're needed before keeping.
+### editToken: keep generation, delete route (2026-06-26)
+`editToken` column is NOT NULL @unique in DB. `createUniqueEditToken()` must stay in `lib/code.ts` and the import route must continue generating it. Only delete: `/edit/[token]` page route, export's edit link column, admin page's editToken display.
+
+### Cloudflare / Neon / R2 unaffected by auth changes
+The account system migration (v1.0→v2.0) does NOT affect: R2 presigned URL flow, Neon pooled/direct connection strings, Cloudflare DNS, or QR code generation. The only new env var is `SESSION_SECRET`.
 
 ### handleSave PATCH body
-- The edit page agent failed to include `avatarUrl` in the PATCH body. When someone uploads an avatar then hits Save, the avatar URL must be sent alongside other fields. Server checks `body.avatarUrl || person.avatarUrl` — if neither is set, publish is blocked.
+- The edit page agent failed to include `avatarUrl` in the PATCH body. When someone uploads an avatar then hits Save, the avatar URL must be sent alongside other fields.
 
 ### Save/publish coupling in /api/me PATCH (fixed 2026-06-25)
-- **Bug**: `published !== undefined` gate in `/api/me/route.ts` blocked the entire PATCH when admin had `allowStudentPublishControl` disabled — including saves where `published: false`. This meant students couldn't save any profile edits unless the admin toggle was ON.
-- **Fix**: Changed to `published === true`. Now only an explicit attempt to publish sets off the admin gate. Saving with `published: false` always works.
-- **Lesson**: `!== undefined` checks on boolean fields are dangerous — `false !== undefined` is `true`. Use `=== true` when the intent is "only when actively toggling ON".
+- **Bug**: `published !== undefined` gate blocked ALL PATCHes when admin toggle was OFF.
+- **Fix**: Changed to `published === true`. Use `=== true` when the intent is "only when actively toggling ON".
 
 ### R2 lazy initialization
-- `S3Client` instantiated at module top-level crashes the entire app if R2 env vars are missing. Use a lazy `getS3()` function that throws only at call time — the rest of the app stays functional without R2 configured.
+- `S3Client` instantiated at module top-level crashes the entire app if R2 env vars are missing. Use a lazy `getS3()` function.
 
 ### @types/qrcode install
-- First `npm install -D @types/qrcode` can fail silently (package not found). Verify with `ls node_modules/@types/qrcode` after install.
+- First `npm install -D @types/qrcode` can fail silently. Verify with `ls node_modules/@types/qrcode`.
 
 ### Prisma engine noise on Vercel (2026-06-25)
-- After deployment, Vercel logs show 4 `PrismaClientInitializationError` "cannot open shared object file" errors. These are **expected noise**, not bugs. The generated `client.ts` tries 4 paths to load the engine binary: 2 for darwin (`.dylib.node`, fails on Linux) and 2 for rhel (`.so.node` via `__dirname` + `process.cwd()`). The `process.cwd()` fallback for the rhel binary succeeds — the app works. The errors are just the failed attempts before the successful one.
-- If the app does NOT work (actual DB query failures), add `PRISMA_QUERY_ENGINE_LIBRARY=./app/generated/prisma/libquery_engine-rhel-openssl-3.0.x.so.node` to Vercel env vars to bypass path resolution entirely.
+- Expected: 4 `PrismaClientInitializationError` on cold start. The 4th path (rhel `.so.node` via `process.cwd()`) succeeds.
