@@ -1174,6 +1174,7 @@ export default function AdminPage() {
   }
 
   async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
     setLoginError("");
     setLoggingIn(true);
     try {
