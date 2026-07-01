@@ -61,7 +61,6 @@ R2_PUBLIC_BASE_URL=     # R2 公开访问域名
 ADMIN_PASSWORD=         # 运营后台口令
 SESSION_SECRET=         # 学生 session 签名密钥（至少 32 字节，openssl rand -base64 48 生成）
 APP_BASE_URL=           # 如 https://xxx.top，导出链接拼前缀用
-PRISMA_QUERY_ENGINE_LIBRARY=  # Vercel 部署需设，指向引擎 .node 文件（可选但推荐）
 ```
 
 ### 安装与运行
@@ -165,6 +164,8 @@ lib/
   r2.ts                      # R2 S3 client + presigned URL
   auth.ts                    # 学生 session / admin session / 密码哈希
   code.ts                    # nanoid 短码 + 密码生成
+  csv.ts                     # CSV RFC 4180 转义 helper
+  rate-limit.ts              # 登录限流（内存滑动窗口）
   qr.ts                      # 二维码生成
 prisma/
   schema.prisma              # Person / Image / LocationCard / Favorite / SystemSetting
@@ -178,11 +179,15 @@ app/generated/prisma/        # Prisma 生成客户端（已提交 git）
 - **两套 cookie 独立**：`owk_session`（学生）和 `owk_admin`（运营）互不干扰
 - **收藏单向静默**：A 收藏 B，只有 A 能看到；B 不通知、不显示次数、不显示是谁
 - **图片直传 R2**：前端压缩后通过 presigned URL 直传，不经过服务端
+- **图片 key 由服务端生成**：前端必须保存 `/api/upload-url` 返回的真实 `key`，删除时才会正确清理 R2 对象
 - **短码复用**：同一 `code` 同时服务于 `/u/{code}`（主页）和 `/loc/{code}`（位置页）
 - **位置页是兜底**：即使某人没布置主页，位置页依然在，保证平等曝光
 - **bio 按 code point 计数**：上限 80，不是 byte 也不是 char
 - **密码不可逆**：存库的是 scrypt hash，明文只在生成/重置那一刻出现一次
+- **Auth fail closed**：`ADMIN_PASSWORD` 和 `SESSION_SECRET` 缺失时直接报错，不使用默认 JWT 密钥
+- **批量导入事务化**：导入账号时任一行失败会整批回滚，不返回半成功账号
 - **主页自动发布**：学生上传头像并保存资料后，主页自动变为可见；管理员仍可通过下架开关隐藏特定页面
+- **微信 UA 引导**：登录页检测微信内置浏览器，提示学生在 Safari/系统默认浏览器中打开，避免微信与 Safari cookie jar 不一致导致「登过却显示未登录」
 
 ## 验证 Check
 
