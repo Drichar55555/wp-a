@@ -76,10 +76,10 @@ export async function POST(request: NextRequest) {
 
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2034" &&
-        attempt < MAX_SAVE_ATTEMPTS
+        error.code === "P2034"
       ) {
-        continue;
+        if (attempt < MAX_SAVE_ATTEMPTS) continue;
+        break;
       }
 
       throw error;
