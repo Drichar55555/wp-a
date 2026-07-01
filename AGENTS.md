@@ -136,7 +136,7 @@ Self-contained HTML with all 6 screens. Click through or use arrow keys. Animati
 
 ## Tech Stack (locked)
 
-Next.js App Router v16+, React, TypeScript, Prisma + Neon PostgreSQL, Cloudflare R2 (S3-compatible), Tailwind, browser-image-compression, nanoid, qrcode, jose. Deploy on Vercel behind Cloudflare DNS.
+Next.js App Router v16+, React, TypeScript, Prisma + Neon PostgreSQL (with `@prisma/adapter-neon` driver adapter), Cloudflare R2 (S3-compatible), Tailwind, browser-image-compression, nanoid, qrcode, jose. Deploy on Vercel behind Cloudflare DNS.
 
 **Do not add unlisted frameworks or libraries.** The stack is frozen. Password hashing uses Node built-in `node:crypto` scrypt — no bcrypt/argon2.
 
@@ -203,12 +203,15 @@ Production: `https://msoweek.site` (Vercel, auto-deploys from `main` branch).
 - `directUrl` goes in `prisma.config.ts`, not in `schema.prisma`.
 - `prisma db execute` in v6 needs explicit `--url` flag.
 
-### Vercel deployment: Prisma engine binary (2026-06-25)
-1. **binaryTargets must include `rhel-openssl-3.0.x`**
-2. **Commit generated Prisma client to git** and keep both `next.config.ts` `outputFileTracingIncludes` and `vercel.json` `functions.includeFiles` pointed at `app/generated/prisma` — otherwise the `.node` engine binary may not enter the Vercel function bundle.
-3. **`dotenv` must be in `dependencies`** (not `devDependencies`).
-4. **No `postinstall` script** — generated client is committed directly.
-5. **Production build must use `next build --webpack`** — current Vercel/Turbopack packaging can omit the Prisma `.so.node` engine from function bundles.
+### Prisma v6: driver adapter + no Rust engine (2026-07-02)
+1. **`schema.prisma` uses `engineType = "client"`**, with `@prisma/adapter-neon` in `lib/prisma.ts`. There is **no native query engine binary** (`.so.node` / `.dylib.node`) to bundle.
+2. **Previous workarounds are no longer required**: `binaryTargets`, `outputFileTracingIncludes`, `vercel.json` `functions.includeFiles`, and `--webpack` for the Prisma engine issue.
+3. **`dotenv` must still be in `dependencies`** (not `devDependencies`) — `prisma.config.ts` imports `dotenv/config`.
+4. **Generated Prisma client is still committed to git** (`app/generated/prisma/`) for reproducible builds, but it no longer contains engine binaries.
+
+### Historical: Prisma engine binary issues (2026-06-25 → 2026-07-01)
+- Earlier deployments used `binaryTargets = ["native", "rhel-openssl-3.0.x"]` and struggled to bundle `libquery_engine-rhel-openssl-3.0.x.so.node` into Vercel functions. This was resolved by switching to `engineType = "client"` with the Neon driver adapter.
+- The 4-path cold-start resolution noise and the `PRISMA_QUERY_ENGINE_LIBRARY` workaround are no longer relevant.
 
 ### Session cookie: server httpOnly only (2026-06-26)
 Session cookie (`owk_session`) must be set via server `Set-Cookie` header, never via `document.cookie` or localStorage. iOS Safari ITP caps script-set cookies to 7 days, but server-set httpOnly cookies are exempt. The app runs for 10+ days and a single login must survive the full event.
@@ -255,8 +258,5 @@ The account system migration (v1.0→v2.0) does NOT affect: R2 presigned URL flo
 ### @types/qrcode install
 - First `npm install -D @types/qrcode` can fail silently. Verify with `ls node_modules/@types/qrcode`.
 
-### Prisma engine noise on Vercel (2026-06-25)
-- Expected: 4 `PrismaClientInitializationError` on cold start. The 4th path (rhel `.so.node` via `process.cwd()`) succeeds.
-
 ### Do NOT set PRISMA_QUERY_ENGINE_LIBRARY on Vercel (2026-07-01)
-- A stale `PRISMA_QUERY_ENGINE_LIBRARY` env var pointing to a non-resolvable path will crash `prisma generate` during the Vercel build with `provided path [...] can't be resolved`. If it exists, remove it from Vercel project settings. The committed generated client in `app/generated/prisma/` plus `binaryTargets = ["native", "rhel-openssl-3.0.x"]` is sufficient.
+- A stale `PRISMA_QUERY_ENGINE_LIBRARY` env var pointing to a non-resolvable path will crash `prisma generate` during the Vercel build with `provided path [...] can't be resolved`. If it exists, remove it from Vercel project settings. With `engineType = "client"` there is no query engine binary and this env var is unnecessary.

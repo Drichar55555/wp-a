@@ -69,9 +69,9 @@ prisma/schema.prisma
 
 ```prisma
 generator client {
-  provider      = "prisma-client"
-  output        = "../app/generated/prisma"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider   = "prisma-client"
+  output     = "../app/generated/prisma"
+  engineType = "client"
 }
 
 datasource db {

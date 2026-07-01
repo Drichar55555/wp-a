@@ -82,11 +82,10 @@ npm run dev               # 启动开发服务器 → http://localhost:3000
 生产地址：`https://msoweek.site`
 
 ⚠️ Vercel 部署特别注意：
-- `binaryTargets` 必须包含 `"rhel-openssl-3.0.x"`（Vercel 用的是 Amazon Linux，不是 Debian）
+- Prisma 使用 `engineType = "client"` + `@prisma/adapter-neon`，**没有原生查询引擎二进制**，因此不再需要 `binaryTargets`、`outputFileTracingIncludes`、`vercel.json` 的 `functions.includeFiles` 以及 `--webpack` 来规避引擎打包问题
 - `dotenv` 必须在 `dependencies` 里（不在 `devDependencies`），否则 Vercel 生产构建时 `prisma.config.ts` 会找不到 `dotenv/config`
-- 生成的 Prisma 客户端（`app/generated/prisma/`）**必须提交到 git**，且 `next.config.ts` 的 `outputFileTracingIncludes` 与 `vercel.json` 的 `functions.includeFiles` 必须包含该目录——否则 Vercel function 会找不到 `libquery_engine-rhel-openssl-3.0.x.so.node`
-- 生产 build 使用 `next build --webpack`。不要改回默认 Turbopack build；当前 Vercel/Turbopack 组合会出现 function 运行包缺 Prisma `.so.node` 的问题
-- 没有 `postinstall` 脚本——提交的生成文件已经包含正确引擎二进制
+- 生成的 Prisma 客户端（`app/generated/prisma/`）**仍然提交到 git**，保证构建可复现，但生成产物中不再包含 `.so.node` / `.dylib.node` 引擎二进制
+- 当前 build script 仍保留 `--webpack`（历史遗留），理论上改回默认 Turbopack 也能工作；如需切换请本地验证后再改
 
 ## 系统架构
 
