@@ -61,5 +61,17 @@
     ],
     "expectedFix": "Image count cap is enforced atomically or through a compensating cleanup path.",
     "verification": "app/api/me/images/route.ts performs the final image count, max sort lookup, and create inside a Serializable transaction with P2034 retry."
+  },
+  {
+    "id": "OWK-006",
+    "title": "P2034 retry exhaustion returns 500 instead of 503",
+    "severity": "P2",
+    "status": "fixed",
+    "source": "codex-pr-review",
+    "evidence": [
+      "app/api/me/images/route.ts"
+    ],
+    "expectedFix": "When all Serializable-transaction retries are exhausted due to P2034, the endpoint returns the explicit 503 retry-exhaustion response instead of throwing an unhandled 500.",
+    "verification": "app/api/me/images/route.ts breaks out of the retry loop on the final P2034 attempt, allowing the 503 response to be returned."
   }
 ]
