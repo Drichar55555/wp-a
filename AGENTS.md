@@ -205,9 +205,10 @@ Production: `https://msoweek.site` (Vercel, auto-deploys from `main` branch).
 
 ### Vercel deployment: Prisma engine binary (2026-06-25)
 1. **binaryTargets must include `rhel-openssl-3.0.x`**
-2. **Commit generated Prisma client to git** and keep `next.config.ts` `outputFileTracingIncludes` pointed at `./app/generated/prisma/**/*` — otherwise the `.node` engine binary may not enter the Vercel function bundle.
+2. **Commit generated Prisma client to git** and keep both `next.config.ts` `outputFileTracingIncludes` and `vercel.json` `functions.includeFiles` pointed at `app/generated/prisma` — otherwise the `.node` engine binary may not enter the Vercel function bundle.
 3. **`dotenv` must be in `dependencies`** (not `devDependencies`).
 4. **No `postinstall` script** — generated client is committed directly.
+5. **Production build must use `next build --webpack`** — current Vercel/Turbopack packaging can omit the Prisma `.so.node` engine from function bundles.
 
 ### Session cookie: server httpOnly only (2026-06-26)
 Session cookie (`owk_session`) must be set via server `Set-Cookie` header, never via `document.cookie` or localStorage. iOS Safari ITP caps script-set cookies to 7 days, but server-set httpOnly cookies are exempt. The app runs for 10+ days and a single login must survive the full event.
