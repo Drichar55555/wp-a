@@ -3,12 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+function getIsWeChat(): boolean {
+  return (
+    typeof navigator !== "undefined" &&
+    /MicroMessenger/i.test(navigator.userAgent)
+  );
+}
+
 export default function LoginForm({ next }: { next: string | null }) {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isWeChat] = useState(getIsWeChat);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +53,16 @@ export default function LoginForm({ next }: { next: string | null }) {
       onSubmit={handleSubmit}
       className="rounded-2xl bg-white p-6 shadow-sm"
     >
+      {isWeChat && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <p className="font-medium">请用系统浏览器打开</p>
+          <p className="mt-1">
+            微信内置浏览器与 Safari 不共享登录状态。请点击右上角「⋯」，选择「在
+            Safari/默认浏览器中打开」，否则碰 NFC 后可能需要重新登录。
+          </p>
+        </div>
+      )}
+
       <div className="mb-4">
         <label
           htmlFor="username"
@@ -95,10 +113,6 @@ export default function LoginForm({ next }: { next: string | null }) {
 }
 
 function isValidNext(next: string): boolean {
-  try {
-    const url = new URL(next, "http://localhost");
-    return url.pathname.startsWith("/") && !url.pathname.startsWith("//");
-  } catch {
-    return false;
-  }
+  if (typeof next !== "string") return false;
+  return next.startsWith("/") && !next.startsWith("//");
 }

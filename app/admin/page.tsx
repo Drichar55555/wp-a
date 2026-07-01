@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { csvCell } from "@/lib/csv";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -417,7 +418,9 @@ function ImportSection() {
               type="button"
               onClick={() => {
                 const header = "name,code,username,password";
-                const rows = result.map((p) => `${p.chineseName},${p.code},${p.username},${p.password}`);
+                const rows = result.map((p) =>
+                  [csvCell(p.chineseName), csvCell(p.code), csvCell(p.username), csvCell(p.password)].join(",")
+                );
                 const csv = [header, ...rows].join("\n");
                 const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
                 const url = URL.createObjectURL(blob);
@@ -873,7 +876,7 @@ function ExportSection({ onTabChange }: { onTabChange: (t: TabId) => void }) {
                 <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">中文名</th>
                 <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">英文名</th>
                 <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">用户名</th>
-                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">密码</th>
+                <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">操作</th>
                 <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">主页</th>
                 <th className="px-2 py-2 font-medium text-zinc-600 sm:px-3 dark:text-zinc-400">位置页</th>
               </tr>

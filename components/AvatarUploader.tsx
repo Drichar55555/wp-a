@@ -4,14 +4,12 @@ import { useState, useRef } from "react";
 import imageCompression from "browser-image-compression";
 
 interface AvatarUploaderProps {
-  token?: string;
   currentUrl: string | null;
   onAvatarChange: (url: string | null) => void;
   disabled?: boolean;
 }
 
 export default function AvatarUploader({
-  token,
   currentUrl,
   onAvatarChange,
   disabled = false,
@@ -32,14 +30,11 @@ export default function AvatarUploader({
       });
 
       const ext = compressed.type.split("/")[1] || "webp";
-      const presignRes = await fetch(
-        token ? `/api/upload-url?token=${token}` : '/api/upload-url',
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contentType: `image/${ext}` }),
-        }
-      );
+      const presignRes = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contentType: `image/${ext}` }),
+      });
 
       if (!presignRes.ok) {
         const err = await presignRes.json();

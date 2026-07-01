@@ -18,6 +18,10 @@ export default async function HomePage({
   }
 
   const { next } = await searchParams;
+  const safeNext =
+    typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+      ? next
+      : null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-stone-50 to-stone-100 px-4">
@@ -31,7 +35,7 @@ export default async function HomePage({
           </p>
         </div>
 
-        <LoginForm next={next ?? null} />
+        <LoginForm next={safeNext} />
 
         <p className="mt-8 text-center text-xs text-stone-400">
           <a href="/admin" className="underline hover:text-stone-600">

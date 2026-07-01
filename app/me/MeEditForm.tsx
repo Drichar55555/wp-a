@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import AvatarUploader from "@/components/AvatarUploader";
 import ImageGrid from "@/components/ImageGrid";
@@ -12,7 +12,6 @@ interface PersonData {
   grade: string | null;
   bio: string | null;
   avatarUrl: string | null;
-  published: boolean;
 }
 
 interface DisplayImage {
@@ -30,9 +29,19 @@ interface MeEditFormProps {
     grade: string | null;
     bio: string | null;
     avatarUrl: string | null;
-    published: boolean;
     images: DisplayImage[];
   };
+}
+
+function isProfileBlank(person: MeEditFormProps["person"]): boolean {
+  return !(
+    person.chineseName ||
+    person.englishName ||
+    person.grade ||
+    person.bio ||
+    person.avatarUrl ||
+    (person.images && person.images.length > 0)
+  );
 }
 
 export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
@@ -42,10 +51,7 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
     grade: initialPerson.grade ?? "",
     bio: initialPerson.bio ?? "",
     avatarUrl: initialPerson.avatarUrl ?? "",
-    published: initialPerson.published,
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [images, setImages] = useState<DisplayImage[]>(initialPerson.images);
   const [saveMessage, setSaveMessage] = useState<{
@@ -53,29 +59,17 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
     text: string;
   } | null>(null);
   const [dirty, setDirty] = useState(false);
-  const [hasBeenEdited, setHasBeenEdited] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [personCode, setPersonCode] = useState(initialPerson.code);
+  const [hasBeenEdited, setHasBeenEdited] = useState(
+    () => !isProfileBlank(initialPerson)
+  );
+  const [isEditing, setIsEditing] = useState(() =>
+    isProfileBlank(initialPerson)
+  );
+  const personCode = initialPerson.code;
 
   const bioCodePoints = [...(form.bio || "")].length;
   const bioOverLimit = bioCodePoints > 80;
   const saveDisabled = saving || bioOverLimit;
-
-  // ── Compute initial edit/lock state from server data ──
-
-  useEffect(() => {
-    const profileIsBlank = !(
-      initialPerson.chineseName ||
-      initialPerson.englishName ||
-      initialPerson.grade ||
-      initialPerson.bio ||
-      initialPerson.avatarUrl ||
-      (initialPerson.images && initialPerson.images.length > 0)
-    );
-    setHasBeenEdited(!profileIsBlank);
-    setIsEditing(profileIsBlank);
-    setLoading(false);
-  }, []);
 
   const updateField = useCallback(
     <K extends keyof PersonData>(field: K, value: PersonData[K]) => {
@@ -108,7 +102,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
           grade: form.grade || null,
           bio: form.bio || null,
           avatarUrl: form.avatarUrl || null,
-          published: form.published,
         }),
       });
 
@@ -130,52 +123,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
       setSaving(false);
     }
   }, [form, bioOverLimit, bioCodePoints]);
-
-  // ── Loading state ──
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-stone-300 border-t-teal-600" />
-          <p className="mt-4 text-sm text-stone-500">Loading your profile…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Error state ──
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50 p-4">
-        <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
-            <svg
-              className="h-6 w-6 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-lg font-semibold text-stone-900">
-            Something went wrong
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-stone-500">
-            {error}
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   // ── Form ──
 
@@ -235,7 +182,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
 
         <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm">
           <AvatarUploader
-            token=""
             currentUrl={form.avatarUrl}
             onAvatarChange={(url) => updateField("avatarUrl", url)}
             disabled={!isEditing}
@@ -338,7 +284,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
               </div>
 
               <ImageGrid
-                token=""
                 images={images}
                 onImagesChange={setImages}
                 disabled={false}
@@ -368,7 +313,6 @@ export default function MeEditForm({ person: initialPerson }: MeEditFormProps) {
                 </div>
               )}
               <ImageGrid
-                token=""
                 images={images}
                 onImagesChange={setImages}
                 disabled={true}

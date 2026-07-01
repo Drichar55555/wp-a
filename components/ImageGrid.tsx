@@ -10,21 +10,19 @@ interface DisplayImage {
 }
 
 interface ImageGridProps {
-  token?: string;
   images: DisplayImage[];
   onImagesChange: (images: DisplayImage[]) => void;
   disabled?: boolean;
 }
 
 export default function ImageGrid({
-  token,
   images,
   onImagesChange,
   disabled = false,
 }: ImageGridProps) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const activeImages = images.filter((img) => true);
+  const activeImages = [...images];
   const remaining = Math.max(0, 4 - activeImages.length);
 
   async function handleFilesSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -45,14 +43,11 @@ export default function ImageGrid({
         });
 
         const ext = compressed.type.split("/")[1] || "webp";
-        const presignRes = await fetch(
-          token ? `/api/upload-url?token=${token}` : '/api/upload-url',
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contentType: `image/${ext}` }),
-          }
-        );
+        const presignRes = await fetch("/api/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contentType: `image/${ext}` }),
+        });
 
         if (!presignRes.ok) {
           const err = await presignRes.json();
@@ -67,14 +62,11 @@ export default function ImageGrid({
           headers: { "Content-Type": `image/${ext}` },
         });
 
-        const saveRes = await fetch(
-          token ? `/api/me/images?token=${token}` : '/api/me/images',
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: publicUrl, key: publicUrl.split("/").pop() || "" }),
-          }
-        );
+        const saveRes = await fetch("/api/me/images", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: publicUrl, key: publicUrl.split("/").pop() || "" }),
+        });
 
         if (!saveRes.ok) throw new Error("Failed to save image record");
         const { image } = await saveRes.json();
@@ -94,10 +86,9 @@ export default function ImageGrid({
     if (!confirm("Delete this image?")) return;
 
     try {
-      const res = await fetch(
-        token ? `/api/me/images?token=${token}&id=${imageId}` : `/api/me/images?id=${imageId}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`/api/me/images?id=${imageId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("Delete failed");
       onImagesChange(activeImages.filter((img) => img.id !== imageId));
     } catch (err) {

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { csvCell } from "@/lib/csv";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   if (!(await verifyAdminSession())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -13,14 +14,14 @@ export async function GET(request: NextRequest) {
   });
 
   const header = "chineseName,englishName,username,code,homepage,location";
-  const rows = persons.map((p: typeof persons[number]) =>
+  const rows = persons.map((p: (typeof persons)[number]) =>
     [
-      p.chineseName || "",
-      p.englishName || "",
-      p.username || "",
-      p.code,
-      `${baseUrl}/u/${p.code}`,
-      `${baseUrl}/loc/${p.code}`,
+      csvCell(p.chineseName || ""),
+      csvCell(p.englishName || ""),
+      csvCell(p.username || ""),
+      csvCell(p.code),
+      csvCell(`${baseUrl}/u/${p.code}`),
+      csvCell(`${baseUrl}/loc/${p.code}`),
     ].join(",")
   );
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="owek-export.csv"',
+      "Content-Disposition": 'attachment; filename="oweek-export.csv"',
     },
   });
 }

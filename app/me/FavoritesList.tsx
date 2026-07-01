@@ -11,7 +11,7 @@ interface FavoriteItem {
   favoritedAt: string;
 }
 
-type PageState = "loading" | "empty" | "data";
+type PageState = "loading" | "empty" | "error" | "data";
 
 function HeartIcon({ className }: { className?: string }) {
   return (
@@ -79,6 +79,22 @@ function EmptyState() {
       </p>
       <p className="max-w-xs text-center text-sm leading-relaxed text-zinc-400 dark:text-zinc-500">
         去逛逛大家的展位吧，遇到感兴趣的同学可以收藏起来
+      </p>
+    </div>
+  );
+}
+
+function ErrorState() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center px-8 pb-16">
+      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/30">
+        <HeartIcon className="h-9 w-9 text-red-400 dark:text-red-500/60" />
+      </div>
+      <p className="mb-2 text-center text-lg font-medium text-zinc-700 dark:text-zinc-300">
+        加载失败
+      </p>
+      <p className="max-w-xs text-center text-sm leading-relaxed text-zinc-400 dark:text-zinc-500">
+        请检查网络后刷新页面重试
       </p>
     </div>
   );
@@ -160,7 +176,7 @@ export default function FavoritesList() {
         }
       })
       .catch(() => {
-        setState("empty");
+        setState("error");
       });
   }, []);
 
@@ -170,6 +186,10 @@ export default function FavoritesList() {
 
   if (state === "empty") {
     return <EmptyState />;
+  }
+
+  if (state === "error") {
+    return <ErrorState />;
   }
 
   return <FavoritesListItems items={items} />;

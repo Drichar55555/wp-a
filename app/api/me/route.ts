@@ -10,20 +10,30 @@ export async function GET(request: NextRequest) {
 
   const person = await prisma.person.findUnique({
     where: { id: session.personId },
-    include: { images: { orderBy: { sort: "asc" } } },
+    select: {
+      id: true,
+      code: true,
+      englishName: true,
+      chineseName: true,
+      grade: true,
+      bio: true,
+      avatarUrl: true,
+      published: true,
+      images: { orderBy: { sort: "asc" } },
+    },
   });
 
   return NextResponse.json({ person, images: person?.images ?? [] });
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(_request: NextRequest) {
   const session = await verifyStudentSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { englishName, chineseName, grade, bio, avatarUrl, published } = body;
+  const body = await _request.json();
+  const { englishName, chineseName, grade, bio, avatarUrl } = body;
 
   if (bio !== undefined) {
     const codePoints = [...bio].length;
@@ -35,29 +45,34 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  if (published === true) {
-    const person = await prisma.person.findUnique({
-      where: { id: session.personId },
-      select: { avatarUrl: true },
-    });
-    const hasAvatar = body.avatarUrl || person?.avatarUrl;
-    if (!hasAvatar) {
-      return NextResponse.json(
-        { error: "Avatar is required before publishing" },
-        { status: 400 }
-      );
-    }
-  }
+  const person = await prisma.person.findUnique({
+    where: { id: session.personId },
+    select: { avatarUrl: true },
+  });
+  const effectiveAvatarUrl =
+    avatarUrl !== undefined ? avatarUrl : person?.avatarUrl;
+  const published = !!effectiveAvatarUrl;
 
   const updated = await prisma.person.update({
     where: { id: session.personId },
+    select: {
+      id: true,
+      code: true,
+      englishName: true,
+      chineseName: true,
+      grade: true,
+      bio: true,
+      avatarUrl: true,
+      published: true,
+      images: { orderBy: { sort: "asc" } },
+    },
     data: {
       ...(englishName !== undefined && { englishName }),
       ...(chineseName !== undefined && { chineseName }),
       ...(grade !== undefined && { grade }),
       ...(bio !== undefined && { bio }),
       ...(avatarUrl !== undefined && { avatarUrl }),
-      ...(published !== undefined && { published }),
+      published,
     },
   });
 

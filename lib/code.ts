@@ -1,10 +1,13 @@
 import { customAlphabet } from "nanoid";
 import { prisma } from "@/lib/prisma";
 
-const ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz";
+const URL_SAFE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz";
+const PRINTABLE_PASSWORD_ALPHABET =
+  "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%^&*-_+=?";
 
-const generateCode = customAlphabet(ALPHABET, 6);
-const generateToken = customAlphabet(ALPHABET, 24);
+const generateCode = customAlphabet(URL_SAFE_ALPHABET, 6);
+const generateToken = customAlphabet(URL_SAFE_ALPHABET, 24);
+const generatePassword = customAlphabet(PRINTABLE_PASSWORD_ALPHABET, 12);
 
 export async function createUniqueCode(): Promise<string> {
   for (let i = 0; i < 10; i++) {
@@ -25,8 +28,6 @@ export async function createUniqueEditToken(): Promise<string> {
   }
   throw new Error("Failed to generate unique edit token after 10 attempts");
 }
-
-const generatePassword = customAlphabet(ALPHABET, 6);
 
 export function newPlainPassword(): string {
   return generatePassword();

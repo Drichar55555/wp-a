@@ -5,8 +5,23 @@ import {
   createStudentSession,
   setStudentCookie,
 } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const WINDOW_MS = 15 * 60 * 1000;
+const MAX_IP_ATTEMPTS = 20;
+const MAX_USER_ATTEMPTS = 5;
 
 export async function POST(request: NextRequest) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const ip = forwardedFor?.split(",")[0]?.trim() ?? "unknown";
+
+  if (!checkRateLimit(`login:ip:${ip}`, MAX_IP_ATTEMPTS, WINDOW_MS)) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   let username: string;
   let password: string;
   try {
@@ -24,6 +39,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "username and password required" },
       { status: 400 }
+    );
+  }
+
+  if (!checkRateLimit(`login:user:${username}`, MAX_USER_ATTEMPTS, WINDOW_MS)) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
     );
   }
 
