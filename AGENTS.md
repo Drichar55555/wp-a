@@ -152,6 +152,7 @@ Next.js App Router v16+, React, TypeScript, Prisma + Neon PostgreSQL, Cloudflare
 - Admin = shared password → signed `owk_admin` httpOnly cookie (8 hours). Separate from student session; both systems coexist.
 - `editToken` column still exists (NOT NULL @unique), still generated on import, but `/edit/{token}` route is retired. Editing is through `/me` with session cookie.
 - Session cookie MUST be server-side `Set-Cookie` (never `document.cookie` or localStorage) — this is critical for Safari ITP survival over 10+ days.
+- `ADMIN_PASSWORD` and `SESSION_SECRET` have no hard-coded fallback. Missing auth env vars must fail closed instead of silently signing JWTs with a default secret.
 - Password hash uses Node built-in `node:crypto` scrypt + `timingSafeEqual`. Format: `"salt_hex:hash_hex"`.
 - Favorites are server-side (Favorite table), one-way (no "who favorited me" reads), no localStorage caching.
 
@@ -161,6 +162,7 @@ Next.js App Router v16+, React, TypeScript, Prisma + Neon PostgreSQL, Cloudflare
 3. PUTs directly to R2 — **never through server**
 4. POSTs `/api/me/images` to save the record
 5. Avatar uses same flow but stored on `Person.avatarUrl`, not counted toward the 4-image limit
+- Persist the exact `key` returned by `/api/upload-url`; never derive it from `publicUrl`. `/api/me/images` validates key ownership and URL equality, then performs the final image-count check inside a Serializable transaction.
 
 ### Short codes: shared between pages
 The same `Person.code` serves both `/u/{code}` (profile) and `/loc/{code}` (location card). Each person gets one code. Default username = code.
@@ -170,8 +172,9 @@ The same `Person.code` serves both `/u/{code}` (profile) and `/loc/{code}` (loca
 - Image count must be < 4 **and** verified server-side on both upload-url and image-save endpoints.
 
 ### System settings (stored in SystemSetting table, PATCH via `/api/admin/settings`)
-- `allowStudentVisibilityControl` — **defaults to "false"** (disabled). When "true", students see a "主页可见" toggle and can switch between public/private.
-- When "false" (default): all pages public, no toggle. Server silently drops `published` from PATCH body — no 403.
+- `allowStudentVisibilityControl` is **not implemented**. The simplified model auto-publishes a profile when the student uploads an avatar and saves their profile. There is no student-facing "主页可见" toggle.
+- `/api/me` PATCH automatically sets `published = true` when `avatarUrl` is present; the `published` field is ignored if sent by the client.
+- Admin can still hide individual pages via the `hidden` flag (takedown).
 
 ### States ≠ pages
 - `hidden=true` → show "该页面已隐藏" placeholder, not blank screen.
@@ -210,7 +213,9 @@ Production: `https://msoweek.site` (Vercel, auto-deploys from `main` branch).
 Session cookie (`owk_session`) must be set via server `Set-Cookie` header, never via `document.cookie` or localStorage. iOS Safari ITP caps script-set cookies to 7 days, but server-set httpOnly cookies are exempt. The app runs for 10+ days and a single login must survive the full event.
 
 ### Password: plaintext only at generation (2026-06-26)
-Account passwords are 6-char scrypt hashes. The plaintext is returned ONCE during import (`/api/admin/import`) or reset (`/api/admin/reset-password`). Export (`/api/admin/export`) does NOT include passwords. No student self-service password recovery.
+Account passwords are 12-char scrypt hashes using `PRINTABLE_PASSWORD_ALPHABET` (mixed case + digits + safe symbols, excluding visually ambiguous chars). The plaintext is returned ONCE during import (`/api/admin/import`) or reset (`/api/admin/reset-password`). Export (`/api/admin/export`) does NOT include passwords. No student self-service password recovery.
+- Login route has per-IP and per-username rate limiting to slow online brute-force attempts.
+- Admin batch import is transactional: Person and LocationCard rows are created as an all-or-nothing batch, and uniqueness conflicts return 409.
 
 ### Favorites: one-way, no reverse reads (2026-06-26)
 `Favorite.favoriteeId` and `Person.favoritesReceived` exist ONLY for cascade delete. Never query "who favorited me" — this is a product hard-decision, not a performance optimization.
@@ -251,3 +256,6 @@ The account system migration (v1.0→v2.0) does NOT affect: R2 presigned URL flo
 
 ### Prisma engine noise on Vercel (2026-06-25)
 - Expected: 4 `PrismaClientInitializationError` on cold start. The 4th path (rhel `.so.node` via `process.cwd()`) succeeds.
+
+### Do NOT set PRISMA_QUERY_ENGINE_LIBRARY on Vercel (2026-07-01)
+- A stale `PRISMA_QUERY_ENGINE_LIBRARY` env var pointing to a non-resolvable path will crash `prisma generate` during the Vercel build with `provided path [...] can't be resolved`. If it exists, remove it from Vercel project settings. The committed generated client in `app/generated/prisma/` plus `binaryTargets = ["native", "rhel-openssl-3.0.x"]` is sufficient.
