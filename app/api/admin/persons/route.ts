@@ -9,8 +9,23 @@ export async function GET() {
 
   const persons = await prisma.person.findMany({
     orderBy: { createdAt: "asc" },
-    include: {
-      images: { orderBy: { sort: "asc" } },
+    select: {
+      id: true,
+      code: true,
+      englishName: true,
+      chineseName: true,
+      grade: true,
+      hidden: true,
+      published: true,
+      images: {
+        orderBy: { sort: "asc" },
+        select: {
+          id: true,
+          url: true,
+          hidden: true,
+          sort: true,
+        },
+      },
     },
   });
 

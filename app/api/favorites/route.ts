@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyStudentSession } from "@/lib/auth";
+import { Prisma } from "@/app/generated/prisma/client";
 
 export async function POST(request: Request) {
   const session = await verifyStudentSession();
@@ -8,7 +9,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { code } = await request.json();
+  let body: Record<string, unknown>;
+  try {
+    const parsed = await request.json();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Invalid request body");
+    }
+    body = parsed;
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 }
+    );
+  }
+
+  const { code } = body;
   if (!code || typeof code !== "string") {
     return NextResponse.json({ error: "Invalid code" }, { status: 400 });
   }
@@ -42,17 +57,39 @@ export async function POST(request: Request) {
   });
 
   if (existing) {
-    await prisma.favorite.delete({
-      where: { id: existing.id },
-    });
+    try {
+      await prisma.favorite.delete({
+        where: { id: existing.id },
+      });
+    } catch (error) {
+      if (
+        !(
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2025"
+        )
+      ) {
+        throw error;
+      }
+    }
     return NextResponse.json({ favorited: false });
   } else {
-    await prisma.favorite.create({
-      data: {
-        favoriterId: session.personId,
-        favoriteeId: target.id,
-      },
-    });
+    try {
+      await prisma.favorite.create({
+        data: {
+          favoriterId: session.personId,
+          favoriteeId: target.id,
+        },
+      });
+    } catch (error) {
+      if (
+        !(
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        )
+      ) {
+        throw error;
+      }
+    }
     return NextResponse.json({ favorited: true });
   }
 }

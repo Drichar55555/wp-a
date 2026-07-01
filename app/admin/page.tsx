@@ -10,7 +10,6 @@ import { csvCell } from "@/lib/csv";
 interface Person {
   id: string;
   code: string;
-  editToken: string;
   englishName: string | null;
   chineseName: string | null;
   grade: string | null;

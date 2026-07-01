@@ -3,6 +3,10 @@ import { verifyStudentSession } from "@/lib/auth";
 import { createPresignedUploadUrl, getPublicUrl } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "nanoid";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const UPLOAD_WINDOW_MS = 10 * 60 * 1000;
+const MAX_UPLOAD_URLS_PER_USER = 20;
 
 export async function POST(request: NextRequest) {
   const session = await verifyStudentSession();
@@ -10,9 +14,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (
+    !checkRateLimit(
+      `upload-url:user:${session.personId}`,
+      MAX_UPLOAD_URLS_PER_USER,
+      UPLOAD_WINDOW_MS
+    )
+  ) {
+    return NextResponse.json(
+      { error: "Too many upload attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   let contentType: string;
   try {
     const body = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      throw new Error("Invalid request body");
+    }
     contentType = body.contentType;
   } catch {
     return NextResponse.json(
@@ -21,7 +41,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!contentType) {
+  if (!contentType || typeof contentType !== "string") {
     return NextResponse.json(
       { error: "contentType required" },
       { status: 400 }
