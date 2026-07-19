@@ -1,0 +1,5 @@
+ALTER TABLE "Person"
+ADD COLUMN "habitatWords" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN "selfWords" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN "exhibitionAnswers" JSONB,
+ADD COLUMN "exhibitionCompleted" BOOLEAN NOT NULL DEFAULT false;

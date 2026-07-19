@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation";
 import { verifyStudentSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import MeEditForm from "./MeEditForm";
-import FavoritesList from "./FavoritesList";
-import LogoutButton from "./LogoutButton";
+import ExhibitionDesigner from "./ExhibitionDesigner";
 
 interface PageImage {
   id: string;
@@ -14,12 +12,26 @@ interface PageImage {
 interface PagePerson {
   id: string;
   code: string;
+  username: string;
   englishName: string | null;
   chineseName: string | null;
   grade: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  habitatWords: string[];
+  selfWords: string[];
+  exhibitionAnswers: Record<string, string>;
+  exhibitionCompleted: boolean;
   images: PageImage[];
+}
+
+function normalizeAnswers(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, string] =>
+      typeof entry[1] === "string"
+    )
+  );
 }
 
 export default async function MePage() {
@@ -45,11 +57,16 @@ export default async function MePage() {
   const personData: PagePerson = {
     id: person.id,
     code: person.code,
+    username: person.username,
     englishName: person.englishName,
     chineseName: person.chineseName,
     grade: person.grade,
     bio: person.bio,
     avatarUrl: person.avatarUrl,
+    habitatWords: person.habitatWords,
+    selfWords: person.selfWords,
+    exhibitionAnswers: normalizeAnswers(person.exhibitionAnswers),
+    exhibitionCompleted: person.exhibitionCompleted,
     images: person.images.map((img) => ({
       id: img.id,
       url: img.url,
@@ -57,15 +74,5 @@ export default async function MePage() {
     })),
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100 py-8 px-4">
-      <div className="mx-auto max-w-md">
-        <MeEditForm person={personData} />
-        <div className="mt-6">
-          <FavoritesList />
-        </div>
-        <LogoutButton />
-      </div>
-    </div>
-  );
+  return <ExhibitionDesigner person={personData} />;
 }

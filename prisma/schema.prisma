@@ -20,6 +20,10 @@ model Person {
   grade        String?
   bio          String?
   avatarUrl    String?
+  habitatWords String[]      @default([])
+  selfWords    String[]      @default([])
+  exhibitionAnswers Json?
+  exhibitionCompleted Boolean @default(false)
   published    Boolean       @default(false)
   hidden       Boolean       @default(false)
   images       Image[]

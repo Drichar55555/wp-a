@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 const MAX_NAME_LENGTH = 40;
 const MAX_GRADE_LENGTH = 20;
 const MAX_BIO_LENGTH = 80;
+const MAX_EXHIBITION_WORDS = 5;
+const MAX_EXHIBITION_WORD_LENGTH = 20;
+const MAX_EXHIBITION_ANSWER_LENGTH = 300;
 
 function codePointLength(value: string) {
   return [...value].length;
@@ -33,6 +36,35 @@ function isValidAvatarUrl(value: string) {
   return !!base && value.startsWith(`${base}/`) && !value.includes("?");
 }
 
+function isValidWordList(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.length <= MAX_EXHIBITION_WORDS &&
+    value.every(
+      (word) =>
+        typeof word === "string" &&
+        codePointLength(word.trim()) > 0 &&
+        codePointLength(word.trim()) <= MAX_EXHIBITION_WORD_LENGTH
+    )
+  );
+}
+
+function isValidExhibitionAnswers(
+  value: unknown
+): value is Record<string, string> {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.keys(value).length <= 10 &&
+    Object.values(value).every(
+      (answer) =>
+        typeof answer === "string" &&
+        codePointLength(answer) <= MAX_EXHIBITION_ANSWER_LENGTH
+    )
+  );
+}
+
 export async function GET() {
   const session = await verifyStudentSession();
   if (!session) {
@@ -49,6 +81,10 @@ export async function GET() {
       grade: true,
       bio: true,
       avatarUrl: true,
+      habitatWords: true,
+      selfWords: true,
+      exhibitionAnswers: true,
+      exhibitionCompleted: true,
       published: true,
       images: { orderBy: { sort: "asc" } },
     },
@@ -77,7 +113,17 @@ export async function PATCH(_request: NextRequest) {
     );
   }
 
-  const { englishName, chineseName, grade, bio, avatarUrl } = body;
+  const {
+    englishName,
+    chineseName,
+    grade,
+    bio,
+    avatarUrl,
+    habitatWords,
+    selfWords,
+    exhibitionAnswers,
+    exhibitionCompleted,
+  } = body;
 
   for (const [value, field, maxLength] of [
     [englishName, "englishName", MAX_NAME_LENGTH],
@@ -92,6 +138,37 @@ export async function PATCH(_request: NextRequest) {
         { status: 400 }
       );
     }
+  }
+
+  if (habitatWords !== undefined && !isValidWordList(habitatWords)) {
+    return NextResponse.json(
+      { error: "habitatWords must contain at most 5 words of 20 characters" },
+      { status: 400 }
+    );
+  }
+  if (selfWords !== undefined && !isValidWordList(selfWords)) {
+    return NextResponse.json(
+      { error: "selfWords must contain at most 5 words of 20 characters" },
+      { status: 400 }
+    );
+  }
+  if (
+    exhibitionAnswers !== undefined &&
+    !isValidExhibitionAnswers(exhibitionAnswers)
+  ) {
+    return NextResponse.json(
+      { error: "Invalid exhibition answers" },
+      { status: 400 }
+    );
+  }
+  if (
+    exhibitionCompleted !== undefined &&
+    typeof exhibitionCompleted !== "boolean"
+  ) {
+    return NextResponse.json(
+      { error: "exhibitionCompleted must be a boolean" },
+      { status: 400 }
+    );
   }
 
   const normalizedAvatarUrl = avatarUrl === "" ? null : avatarUrl;
@@ -125,6 +202,10 @@ export async function PATCH(_request: NextRequest) {
       grade: true,
       bio: true,
       avatarUrl: true,
+      habitatWords: true,
+      selfWords: true,
+      exhibitionAnswers: true,
+      exhibitionCompleted: true,
       published: true,
       images: { orderBy: { sort: "asc" } },
     },
@@ -136,6 +217,14 @@ export async function PATCH(_request: NextRequest) {
       ...(normalizedAvatarUrl !== undefined && {
         avatarUrl: normalizedAvatarUrl,
       }),
+      ...(habitatWords !== undefined && {
+        habitatWords: habitatWords.map((word) => word.trim()),
+      }),
+      ...(selfWords !== undefined && {
+        selfWords: selfWords.map((word) => word.trim()),
+      }),
+      ...(exhibitionAnswers !== undefined && { exhibitionAnswers }),
+      ...(exhibitionCompleted !== undefined && { exhibitionCompleted }),
       published,
     },
   });

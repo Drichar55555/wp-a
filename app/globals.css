@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-platform: "Platform", "Platform Web", "Arial Black", "Helvetica Neue", sans-serif;
+  --font-qihei: "HYQiHei", "HY QiHei", "汉仪旗黑", "PingFang SC", "Hiragino Sans GB", sans-serif;
 }
 
 @theme inline {
@@ -22,5 +24,93 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-platform), var(--font-qihei);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-platform {
+  font-family: var(--font-platform);
+}
+
+.font-qihei {
+  font-family: var(--font-qihei);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes exhibition-card-stack-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(44px) scale(0.86);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes exhibition-card-top-swing {
+  0% { rotate: -10deg; }
+  32% { rotate: -22deg; }
+  52% { rotate: -4deg; }
+  68% { rotate: -14deg; }
+  82% { rotate: -8deg; }
+  92% { rotate: -10.8deg; }
+  100% { rotate: -10deg; }
+}
+
+@keyframes exhibition-card-bottom-swing {
+  0% { rotate: 3deg; }
+  32% { rotate: 16deg; }
+  52% { rotate: -2deg; }
+  68% { rotate: 7deg; }
+  82% { rotate: 1.5deg; }
+  92% { rotate: 3.6deg; }
+  100% { rotate: 3deg; }
+}
+
+.exhibition-card-stack {
+  animation: exhibition-card-stack-appear 0.52s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s both;
+  will-change: transform, opacity;
+}
+
+.exhibition-card-top {
+  animation: exhibition-card-top-swing 1.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s both;
+  transform-origin: 50% 145%;
+  will-change: rotate;
+}
+
+.exhibition-card-bottom {
+  animation: exhibition-card-bottom-swing 1.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s both;
+  transform-origin: 50% 145%;
+  will-change: rotate;
+}
+
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -35,6 +35,7 @@ export type PersonMinAggregateOutputType = {
   grade: string | null
   bio: string | null
   avatarUrl: string | null
+  exhibitionCompleted: boolean | null
   published: boolean | null
   hidden: boolean | null
   updatedAt: Date | null
@@ -52,6 +53,7 @@ export type PersonMaxAggregateOutputType = {
   grade: string | null
   bio: string | null
   avatarUrl: string | null
+  exhibitionCompleted: boolean | null
   published: boolean | null
   hidden: boolean | null
   updatedAt: Date | null
@@ -69,6 +71,10 @@ export type PersonCountAggregateOutputType = {
   grade: number
   bio: number
   avatarUrl: number
+  habitatWords: number
+  selfWords: number
+  exhibitionAnswers: number
+  exhibitionCompleted: number
   published: number
   hidden: number
   updatedAt: number
@@ -88,6 +94,7 @@ export type PersonMinAggregateInputType = {
   grade?: true
   bio?: true
   avatarUrl?: true
+  exhibitionCompleted?: true
   published?: true
   hidden?: true
   updatedAt?: true
@@ -105,6 +112,7 @@ export type PersonMaxAggregateInputType = {
   grade?: true
   bio?: true
   avatarUrl?: true
+  exhibitionCompleted?: true
   published?: true
   hidden?: true
   updatedAt?: true
@@ -122,6 +130,10 @@ export type PersonCountAggregateInputType = {
   grade?: true
   bio?: true
   avatarUrl?: true
+  habitatWords?: true
+  selfWords?: true
+  exhibitionAnswers?: true
+  exhibitionCompleted?: true
   published?: true
   hidden?: true
   updatedAt?: true
@@ -212,6 +224,10 @@ export type PersonGroupByOutputType = {
   grade: string | null
   bio: string | null
   avatarUrl: string | null
+  habitatWords: string[]
+  selfWords: string[]
+  exhibitionAnswers: runtime.JsonValue | null
+  exhibitionCompleted: boolean
   published: boolean
   hidden: boolean
   updatedAt: Date
@@ -250,6 +266,10 @@ export type PersonWhereInput = {
   grade?: Prisma.StringNullableFilter<"Person"> | string | null
   bio?: Prisma.StringNullableFilter<"Person"> | string | null
   avatarUrl?: Prisma.StringNullableFilter<"Person"> | string | null
+  habitatWords?: Prisma.StringNullableListFilter<"Person">
+  selfWords?: Prisma.StringNullableListFilter<"Person">
+  exhibitionAnswers?: Prisma.JsonNullableFilter<"Person">
+  exhibitionCompleted?: Prisma.BoolFilter<"Person"> | boolean
   published?: Prisma.BoolFilter<"Person"> | boolean
   hidden?: Prisma.BoolFilter<"Person"> | boolean
   updatedAt?: Prisma.DateTimeFilter<"Person"> | Date | string
@@ -271,6 +291,10 @@ export type PersonOrderByWithRelationInput = {
   grade?: Prisma.SortOrderInput | Prisma.SortOrder
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  habitatWords?: Prisma.SortOrder
+  selfWords?: Prisma.SortOrder
+  exhibitionAnswers?: Prisma.SortOrderInput | Prisma.SortOrder
+  exhibitionCompleted?: Prisma.SortOrder
   published?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -295,6 +319,10 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   grade?: Prisma.StringNullableFilter<"Person"> | string | null
   bio?: Prisma.StringNullableFilter<"Person"> | string | null
   avatarUrl?: Prisma.StringNullableFilter<"Person"> | string | null
+  habitatWords?: Prisma.StringNullableListFilter<"Person">
+  selfWords?: Prisma.StringNullableListFilter<"Person">
+  exhibitionAnswers?: Prisma.JsonNullableFilter<"Person">
+  exhibitionCompleted?: Prisma.BoolFilter<"Person"> | boolean
   published?: Prisma.BoolFilter<"Person"> | boolean
   hidden?: Prisma.BoolFilter<"Person"> | boolean
   updatedAt?: Prisma.DateTimeFilter<"Person"> | Date | string
@@ -316,6 +344,10 @@ export type PersonOrderByWithAggregationInput = {
   grade?: Prisma.SortOrderInput | Prisma.SortOrder
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  habitatWords?: Prisma.SortOrder
+  selfWords?: Prisma.SortOrder
+  exhibitionAnswers?: Prisma.SortOrderInput | Prisma.SortOrder
+  exhibitionCompleted?: Prisma.SortOrder
   published?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -339,6 +371,10 @@ export type PersonScalarWhereWithAggregatesInput = {
   grade?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
   bio?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
   avatarUrl?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
+  habitatWords?: Prisma.StringNullableListFilter<"Person">
+  selfWords?: Prisma.StringNullableListFilter<"Person">
+  exhibitionAnswers?: Prisma.JsonNullableWithAggregatesFilter<"Person">
+  exhibitionCompleted?: Prisma.BoolWithAggregatesFilter<"Person"> | boolean
   published?: Prisma.BoolWithAggregatesFilter<"Person"> | boolean
   hidden?: Prisma.BoolWithAggregatesFilter<"Person"> | boolean
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Person"> | Date | string
@@ -356,6 +392,10 @@ export type PersonCreateInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -377,6 +417,10 @@ export type PersonUncheckedCreateInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -398,6 +442,10 @@ export type PersonUpdateInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -419,6 +467,10 @@ export type PersonUncheckedUpdateInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -440,6 +492,10 @@ export type PersonCreateManyInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -457,6 +513,10 @@ export type PersonUpdateManyMutationInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -474,10 +534,22 @@ export type PersonUncheckedUpdateManyInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type PersonCountOrderByAggregateInput = {
@@ -491,6 +563,10 @@ export type PersonCountOrderByAggregateInput = {
   grade?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  habitatWords?: Prisma.SortOrder
+  selfWords?: Prisma.SortOrder
+  exhibitionAnswers?: Prisma.SortOrder
+  exhibitionCompleted?: Prisma.SortOrder
   published?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -508,6 +584,7 @@ export type PersonMaxOrderByAggregateInput = {
   grade?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  exhibitionCompleted?: Prisma.SortOrder
   published?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -525,6 +602,7 @@ export type PersonMinOrderByAggregateInput = {
   grade?: Prisma.SortOrder
   bio?: Prisma.SortOrder
   avatarUrl?: Prisma.SortOrder
+  exhibitionCompleted?: Prisma.SortOrder
   published?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -536,12 +614,30 @@ export type PersonScalarRelationFilter = {
   isNot?: Prisma.PersonWhereInput
 }
 
+export type PersonCreatehabitatWordsInput = {
+  set: string[]
+}
+
+export type PersonCreateselfWordsInput = {
+  set: string[]
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type PersonUpdatehabitatWordsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type PersonUpdateselfWordsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -619,6 +715,10 @@ export type PersonCreateWithoutImagesInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -639,6 +739,10 @@ export type PersonUncheckedCreateWithoutImagesInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -675,6 +779,10 @@ export type PersonUpdateWithoutImagesInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -695,6 +803,10 @@ export type PersonUncheckedUpdateWithoutImagesInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -715,6 +827,10 @@ export type PersonCreateWithoutLocationInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -735,6 +851,10 @@ export type PersonUncheckedCreateWithoutLocationInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -771,6 +891,10 @@ export type PersonUpdateWithoutLocationInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -791,6 +915,10 @@ export type PersonUncheckedUpdateWithoutLocationInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -811,6 +939,10 @@ export type PersonCreateWithoutFavoritesGivenInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -831,6 +963,10 @@ export type PersonUncheckedCreateWithoutFavoritesGivenInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -856,6 +992,10 @@ export type PersonCreateWithoutFavoritesReceivedInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -876,6 +1016,10 @@ export type PersonUncheckedCreateWithoutFavoritesReceivedInput = {
   grade?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  habitatWords?: Prisma.PersonCreatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonCreateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: Date | string
@@ -912,6 +1056,10 @@ export type PersonUpdateWithoutFavoritesGivenInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -932,6 +1080,10 @@ export type PersonUncheckedUpdateWithoutFavoritesGivenInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -963,6 +1115,10 @@ export type PersonUpdateWithoutFavoritesReceivedInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -983,6 +1139,10 @@ export type PersonUncheckedUpdateWithoutFavoritesReceivedInput = {
   grade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  habitatWords?: Prisma.PersonUpdatehabitatWordsInput | string[]
+  selfWords?: Prisma.PersonUpdateselfWordsInput | string[]
+  exhibitionAnswers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  exhibitionCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1052,6 +1212,10 @@ export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   grade?: boolean
   bio?: boolean
   avatarUrl?: boolean
+  habitatWords?: boolean
+  selfWords?: boolean
+  exhibitionAnswers?: boolean
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: boolean
@@ -1074,6 +1238,10 @@ export type PersonSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   grade?: boolean
   bio?: boolean
   avatarUrl?: boolean
+  habitatWords?: boolean
+  selfWords?: boolean
+  exhibitionAnswers?: boolean
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: boolean
@@ -1091,6 +1259,10 @@ export type PersonSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   grade?: boolean
   bio?: boolean
   avatarUrl?: boolean
+  habitatWords?: boolean
+  selfWords?: boolean
+  exhibitionAnswers?: boolean
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: boolean
@@ -1108,13 +1280,17 @@ export type PersonSelectScalar = {
   grade?: boolean
   bio?: boolean
   avatarUrl?: boolean
+  habitatWords?: boolean
+  selfWords?: boolean
+  exhibitionAnswers?: boolean
+  exhibitionCompleted?: boolean
   published?: boolean
   hidden?: boolean
   updatedAt?: boolean
   createdAt?: boolean
 }
 
-export type PersonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "editToken" | "username" | "passwordHash" | "englishName" | "chineseName" | "grade" | "bio" | "avatarUrl" | "published" | "hidden" | "updatedAt" | "createdAt", ExtArgs["result"]["person"]>
+export type PersonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "editToken" | "username" | "passwordHash" | "englishName" | "chineseName" | "grade" | "bio" | "avatarUrl" | "habitatWords" | "selfWords" | "exhibitionAnswers" | "exhibitionCompleted" | "published" | "hidden" | "updatedAt" | "createdAt", ExtArgs["result"]["person"]>
 export type PersonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   images?: boolean | Prisma.Person$imagesArgs<ExtArgs>
   favoritesGiven?: boolean | Prisma.Person$favoritesGivenArgs<ExtArgs>
@@ -1144,6 +1320,10 @@ export type $PersonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     grade: string | null
     bio: string | null
     avatarUrl: string | null
+    habitatWords: string[]
+    selfWords: string[]
+    exhibitionAnswers: runtime.JsonValue | null
+    exhibitionCompleted: boolean
     published: boolean
     hidden: boolean
     updatedAt: Date
@@ -1585,6 +1765,10 @@ export interface PersonFieldRefs {
   readonly grade: Prisma.FieldRef<"Person", 'String'>
   readonly bio: Prisma.FieldRef<"Person", 'String'>
   readonly avatarUrl: Prisma.FieldRef<"Person", 'String'>
+  readonly habitatWords: Prisma.FieldRef<"Person", 'String[]'>
+  readonly selfWords: Prisma.FieldRef<"Person", 'String[]'>
+  readonly exhibitionAnswers: Prisma.FieldRef<"Person", 'Json'>
+  readonly exhibitionCompleted: Prisma.FieldRef<"Person", 'Boolean'>
   readonly published: Prisma.FieldRef<"Person", 'Boolean'>
   readonly hidden: Prisma.FieldRef<"Person", 'Boolean'>
   readonly updatedAt: Prisma.FieldRef<"Person", 'DateTime'>
