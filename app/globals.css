@@ -1,17 +1,129 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Platform Web";
+  src: url("/fonts/platform-light.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Platform Web";
+  src: url("/fonts/platform-regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Platform Web";
+  src: url("/fonts/platform-medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Platform Web";
+  src: url("/fonts/platform-bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-35s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-40s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-45s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 250;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-50s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-60s.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-65s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-70s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-70s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-80s.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HYQiHei Web";
+  src: url("/fonts/hy-qihei-85s.otf") format("opentype");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --font-platform: "Platform", "Platform Web", "Arial Black", "Helvetica Neue", sans-serif;
-  --font-qihei: "HYQiHei", "HY QiHei", "汉仪旗黑", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --font-platform: "Platform Web", "Platform", "Arial Black", "Helvetica Neue", sans-serif;
+  --font-qihei: "HYQiHei Web", "HYQiHei", "HY QiHei", "汉仪旗黑", "PingFang SC", "Hiragino Sans GB", sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-platform), var(--font-qihei);
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,12 +137,14 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-platform), var(--font-qihei);
+  font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
 .font-platform {
   font-family: var(--font-platform);
+  letter-spacing: 0.01em;
 }
 
 .font-qihei {
@@ -84,13 +198,26 @@ html {
 .exhibition-card-top {
   animation: exhibition-card-top-swing 1.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s both;
   transform-origin: 50% 145%;
+  transition: rotate 760ms cubic-bezier(0.22, 1, 0.36, 1), transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: rotate;
 }
 
 .exhibition-card-bottom {
   animation: exhibition-card-bottom-swing 1.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s both;
+  transform: translate(3.5rem, -0.75rem);
   transform-origin: 50% 145%;
-  will-change: rotate;
+  transition: rotate 760ms cubic-bezier(0.22, 1, 0.36, 1), transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: rotate, transform;
+}
+
+.exhibition-card-top.is-editing {
+  animation: none;
+  rotate: 0deg;
+}
+
+.exhibition-card-bottom.is-editing {
+  animation: none;
+  transform: translate(-1.25rem, 0.75rem) rotate(-12deg);
 }
 
 button,
@@ -98,6 +225,21 @@ a,
 input,
 textarea {
   -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a[href] {
+  cursor: pointer;
+  transition-property: scale, color, background-color, border-color, opacity, box-shadow;
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled):hover,
+  a[href]:hover {
+    scale: 1.035;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

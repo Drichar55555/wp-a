@@ -8,7 +8,6 @@ import {
   motion,
   useReducedMotion,
 } from "framer-motion";
-import AvatarUploader from "@/components/AvatarUploader";
 
 interface ExhibitionPerson {
   id: string;
@@ -30,6 +29,7 @@ interface ExhibitionDesignerProps {
 }
 
 type ProfileForm = {
+  username: string;
   englishName: string;
   chineseName: string;
   grade: string;
@@ -74,16 +74,15 @@ const QUESTIONS = [
 
 const WHO_AM_I = 2;
 const CARD_INVITE = 3;
-const CARD_EDIT = 4;
-const SELF_INTRO = 5;
-const SELF_PICK = 6;
-const SELF_RESULT = 7;
-const HABITAT_INTRO = 8;
-const HABITAT_PICK = 9;
-const HABITAT_RESULT = 10;
-const QUESTIONS_TITLE = 11;
-const QUESTIONNAIRE_INTRO = 12;
-const QUESTION_START = 13;
+const SELF_INTRO = 4;
+const SELF_PICK = 5;
+const SELF_RESULT = 6;
+const HABITAT_INTRO = 7;
+const HABITAT_PICK = 8;
+const HABITAT_RESULT = 9;
+const QUESTIONS_TITLE = 10;
+const QUESTIONNAIRE_INTRO = 11;
+const QUESTION_START = 12;
 const QUESTION_END = QUESTION_START + QUESTIONS.length;
 const FINAL_PREVIEW = QUESTION_END;
 
@@ -111,7 +110,7 @@ function Brand({ children }: { children: React.ReactNode }) {
       transition={spring}
       className="font-platform pointer-events-none fixed right-5 top-5 z-30 text-right sm:right-10 sm:top-8"
     >
-      <p className="text-[clamp(1.35rem,3vw,2.3rem)] font-black tracking-[-0.06em] text-zinc-200">
+      <p className="text-[clamp(1.35rem,3vw,2.3rem)] font-black tracking-[0.01em] text-zinc-200">
         {children}
       </p>
     </motion.div>
@@ -140,7 +139,7 @@ function ContinueButton({
       transition={spring}
       className={`${
         wide ? "h-14 min-w-44 rounded-full px-8 text-base" : "h-12 w-12 rounded-full"
-      } font-qihei flex items-center justify-center bg-[#ff4f12] font-bold text-white shadow-[0_10px_30px_rgba(255,79,18,0.2)] outline-none transition-colors focus-visible:ring-4 focus-visible:ring-orange-200 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300 disabled:shadow-none`}
+      } font-qihei flex items-center justify-center bg-[#ff4f12] font-semibold text-white shadow-[0_10px_30px_rgba(255,79,18,0.2)] outline-none transition-colors focus-visible:ring-4 focus-visible:ring-orange-200 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300 disabled:shadow-none`}
       aria-label={label}
     >
       {wide ? label : <ArrowIcon />}
@@ -193,7 +192,7 @@ function IntroScene({
         <motion.h1
           layoutId="hero-title"
           transition={spring}
-          className="font-platform max-w-5xl text-[clamp(3.8rem,10vw,9rem)] font-black leading-[0.86] tracking-[-0.075em] text-black"
+          className="font-platform max-w-5xl text-[clamp(3.8rem,10vw,9rem)] font-black leading-[0.86] tracking-[0.015em] text-black"
         >
           {title}
         </motion.h1>
@@ -254,9 +253,9 @@ function WordPicker({
       <div className="mx-auto flex min-h-[calc(100svh-10rem)] max-w-6xl flex-col pb-24 sm:pb-0">
         <header className="grid gap-6 pt-1 sm:grid-cols-[1fr_auto] sm:items-start">
           <div className="max-w-md">
-            <p className="font-qihei text-xs font-bold text-zinc-300">这些是学长学姐给自己的形容，如果你觉得符合自己可以</p>
-            <p className="font-qihei mt-1 text-sm font-black">点击选择</p>
-            <p className="font-qihei text-xs font-bold text-zinc-300">当然你也可以</p>
+            <p className="font-qihei text-xs font-medium text-zinc-300">这些是学长学姐给自己的形容，如果你觉得符合自己可以</p>
+            <p className="font-qihei mt-1 text-sm font-extrabold">点击选择</p>
+            <p className="font-qihei text-xs font-medium text-zinc-300">当然你也可以</p>
             <div className="mt-2 flex items-center gap-3">
               {showCustom ? (
                 <div className="flex items-center gap-2">
@@ -267,12 +266,12 @@ function WordPicker({
                     onChange={(event) => setCustom(event.target.value)}
                     onKeyDown={(event) => event.key === "Enter" && addCustom()}
                     placeholder="输入你的词"
-                    className="font-qihei h-12 w-44 rounded-full border-2 border-black px-5 text-base font-bold outline-none focus:ring-4 focus:ring-orange-100"
+                    className="font-qihei h-12 w-44 rounded-full border-2 border-black px-5 text-base font-medium outline-none focus:ring-4 focus:ring-orange-100"
                   />
                   <button
                     type="button"
                     onClick={addCustom}
-                    className="font-qihei h-12 rounded-full bg-black px-6 text-sm font-bold text-white outline-none focus-visible:ring-4 focus-visible:ring-zinc-300"
+                    className="font-qihei h-12 rounded-full bg-black px-6 text-sm font-semibold text-white outline-none focus-visible:ring-4 focus-visible:ring-zinc-300"
                   >
                     添加
                   </button>
@@ -281,7 +280,7 @@ function WordPicker({
                 <button
                   type="button"
                   onClick={() => setShowCustom(true)}
-                  className="font-qihei h-12 rounded-full bg-[#ff4f12] px-7 text-base font-black text-white outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:ring-orange-200 active:scale-95"
+                  className="font-qihei h-12 rounded-full bg-[#ff4f12] px-7 text-base font-extrabold text-white outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:ring-orange-200 active:scale-95"
                 >
                   创建词条
                 </button>
@@ -292,11 +291,11 @@ function WordPicker({
           <motion.h1
             layoutId="question-title"
             transition={spring}
-            className="font-platform max-w-2xl text-right text-[clamp(2rem,4.8vw,4.5rem)] font-black leading-[0.9] tracking-[-0.055em]"
+            className="font-platform max-w-2xl text-right text-[clamp(2rem,4.8vw,4.5rem)] font-black leading-[0.9] tracking-normal"
           >
             {title}
           </motion.h1>
-          <p className="font-qihei max-w-lg text-right text-xs font-bold text-zinc-500 sm:col-start-2 sm:text-sm">
+          <p className="font-qihei max-w-lg text-right text-xs font-medium text-zinc-500 sm:col-start-2 sm:text-sm">
             {subtitle}
           </p>
         </header>
@@ -314,7 +313,7 @@ function WordPicker({
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 transition={spring}
-                className={`font-qihei min-h-14 rounded-full px-6 text-base font-black outline-none transition-colors focus-visible:ring-4 focus-visible:ring-orange-200 sm:min-h-16 sm:text-lg ${
+                className={`font-qihei min-h-14 rounded-full px-6 text-base font-extrabold outline-none transition-colors focus-visible:ring-4 focus-visible:ring-orange-200 sm:min-h-16 sm:text-lg ${
                   active
                     ? "bg-[#ff4f12] text-white"
                     : index % 3 === 1
@@ -349,7 +348,7 @@ function ResultScene({
       <Brand>{brand}</Brand>
       <div className="mx-auto flex min-h-[calc(100svh-10rem)] max-w-6xl flex-col items-end justify-center text-right">
         <motion.div layoutId={`word-${words[0]}`} transition={spring} className="max-w-full">
-          <h1 className="break-words text-[clamp(4rem,12vw,10rem)] font-black leading-[0.84] tracking-[-0.08em] text-black">
+          <h1 className="break-words text-[clamp(4rem,12vw,10rem)] font-black leading-[0.84] tracking-normal text-black">
             {words[0] || "Unknown"}.adj
           </h1>
         </motion.div>
@@ -396,7 +395,7 @@ function QuestionnaireScene({
             <motion.label
               layoutId="question-label"
               htmlFor={`question-${index}`}
-              className="font-qihei text-base font-black leading-relaxed text-black sm:text-lg"
+              className="font-qihei text-base font-extrabold leading-relaxed text-black sm:text-lg"
             >
               {QUESTIONS[index]}
             </motion.label>
@@ -438,20 +437,18 @@ function QuestionnaireScene({
 
 function NameCardGraphic({
   form,
-  username,
-  compact = false,
+  editing = false,
+  onChange,
 }: {
   form: ProfileForm;
-  username: string;
-  compact?: boolean;
+  editing?: boolean;
+  onChange?: (form: ProfileForm) => void;
 }) {
   return (
     <motion.div
       layoutId="name-card"
       transition={spring}
-      className={`relative overflow-hidden rounded-[2.7rem] border-[7px] border-zinc-200 bg-zinc-50 ${
-        compact ? "h-64 w-full max-w-md" : "aspect-[1.55/1] w-full max-w-2xl"
-      }`}
+      className="relative aspect-[1.55/1] w-full max-w-2xl overflow-hidden rounded-[2.7rem] border-[7px] border-zinc-200 bg-zinc-50"
     >
       <div className="absolute inset-0 grid grid-cols-[0.38fr_0.62fr] items-center gap-5 p-8 sm:gap-10 sm:p-12">
         <div className="aspect-square overflow-hidden rounded-[1.5rem] border-[6px] border-zinc-200 bg-white">
@@ -460,20 +457,52 @@ function NameCardGraphic({
             <img src={form.avatarUrl} alt="个人头像" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-4xl font-black text-zinc-200">
-              {(form.englishName || form.chineseName || username).slice(0, 1).toUpperCase()}
+              {(form.englishName || form.chineseName || form.username).slice(0, 1).toUpperCase()}
             </div>
           )}
         </div>
         <div className="min-w-0">
           <p className="text-xs font-black text-black">姓名:</p>
-          <p className="mt-1 truncate rounded-full bg-zinc-100 px-4 py-2 text-sm font-black text-black">
-            {form.chineseName || form.englishName || "你的名字"}
-          </p>
+          {editing ? (
+            <motion.input
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              value={form.chineseName}
+              maxLength={40}
+              onChange={(event) => onChange?.({ ...form, chineseName: event.target.value })}
+              placeholder="你的名字"
+              aria-label="姓名"
+              className="font-qihei mt-1 h-10 w-full rounded-full border-2 border-transparent bg-white px-4 text-sm font-medium text-black outline-none focus:border-[#ff4f12] sm:h-12 sm:text-base"
+            />
+          ) : (
+            <p className="mt-1 truncate rounded-full bg-zinc-100 px-4 py-2 text-sm font-black text-black">
+              {form.chineseName || "你的名字"}
+            </p>
+          )}
           <p className="mt-5 text-xs font-black text-black">用户名:</p>
-          <p className="mt-1 truncate rounded-full bg-zinc-100 px-4 py-2 text-sm font-black text-black">
-            {username}
+          {editing ? (
+            <motion.input
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.06 }}
+              value={form.username}
+              maxLength={40}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              onChange={(event) => onChange?.({ ...form, username: event.target.value })}
+              placeholder="username"
+              aria-label="用户名"
+              className="font-platform mt-1 h-10 w-full rounded-full border-2 border-transparent bg-white px-4 text-sm font-bold text-black outline-none focus:border-[#ff4f12] sm:h-12 sm:text-base"
+            />
+          ) : (
+            <p className="mt-1 truncate rounded-full bg-zinc-100 px-4 py-2 text-sm font-black text-black">
+              {form.username || "你的用户名"}
+            </p>
+          )}
+          <p className="mt-1 text-[10px] font-bold text-zinc-300">
+            {editing ? "修改后将使用新用户名登录" : "自己给自己的名字"}
           </p>
-          <p className="mt-1 text-[10px] font-bold text-zinc-300">自己给自己的名字</p>
         </div>
       </div>
     </motion.div>
@@ -482,14 +511,17 @@ function NameCardGraphic({
 
 function CardInviteScene({
   form,
-  username,
-  onNext,
+  onChange,
+  onDone,
 }: {
   form: ProfileForm;
-  username: string;
-  onNext: () => void;
+  onChange: (form: ProfileForm) => void;
+  onDone: () => void;
 }) {
   const reduceMotion = useReducedMotion();
+  const [editing, setEditing] = useState(false);
+  const usernameValid = form.username.trim().length >= 2 && !/[\s/]/u.test(form.username);
+  const nameValid = form.chineseName.trim().length > 0;
 
   return (
     <SceneShell sceneKey="card-invite">
@@ -497,120 +529,74 @@ function CardInviteScene({
       <div className="mx-auto flex min-h-[calc(100svh-10rem)] max-w-5xl flex-col items-center justify-center">
         <div
           data-testid="name-card-pop"
-          className="exhibition-card-stack relative w-[82%] max-w-3xl sm:w-full"
+          className={`exhibition-card-stack relative w-[82%] max-w-3xl sm:w-full ${editing ? "is-editing" : ""}`}
         >
           <div
             data-testid="name-card-bottom"
-            className="exhibition-card-bottom absolute inset-5 translate-x-14 -translate-y-3 rounded-[3rem] bg-zinc-200"
+            className={`exhibition-card-bottom absolute inset-5 rounded-[3rem] bg-zinc-200 ${editing ? "is-editing" : ""}`}
           />
           <div
             data-testid="name-card-top"
-            className="exhibition-card-top relative"
+            className={`exhibition-card-top relative ${editing ? "is-editing" : ""}`}
           >
-            <NameCardGraphic form={form} username={username} />
+            <NameCardGraphic form={form} editing={editing} onChange={onChange} />
           </div>
         </div>
-        <motion.button
-          layoutId="edit-card-button"
-          type="button"
-          onClick={onNext}
-          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.72 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={
-            reduceMotion
-              ? { duration: 0.15 }
-              : { type: "spring", stiffness: 240, damping: 14, delay: 1.52 }
-          }
-          whileHover={{ y: -2 }}
-          whileTap={{ scale: 0.96 }}
-          className="mt-8 rounded-full bg-[#ff4f12] px-7 py-3 text-lg font-black text-white outline-none focus-visible:ring-4 focus-visible:ring-orange-200"
-        >
-          编辑名片
-        </motion.button>
-      </div>
-    </SceneShell>
-  );
-}
-
-function CardEditorScene({
-  form,
-  username,
-  onChange,
-  onDone,
-}: {
-  form: ProfileForm;
-  username: string;
-  onChange: (form: ProfileForm) => void;
-  onDone: () => void;
-}) {
-  return (
-    <SceneShell sceneKey="card-editor">
-      <Brand>Who am I ?</Brand>
-      <div className="mx-auto flex min-h-[calc(100svh-10rem)] max-w-5xl flex-col items-center justify-center gap-8 lg:flex-row">
-        <motion.div
-          layoutId="name-card"
-          transition={spring}
-          className="w-full max-w-2xl rounded-[2.8rem] border-[7px] border-zinc-200 bg-zinc-50 p-6 sm:p-10"
-        >
-          <div className="grid gap-6 sm:grid-cols-[180px_1fr] sm:items-start">
-            <div className="rounded-[2rem] border-4 border-zinc-200 bg-white p-4">
-              <AvatarUploader
-                currentUrl={form.avatarUrl || null}
-                onAvatarChange={(url) => onChange({ ...form, avatarUrl: url || "" })}
+        <AnimatePresence mode="wait">
+          {!editing ? (
+            <motion.button
+              key="edit"
+              layoutId="edit-card-button"
+              type="button"
+              onClick={() => setEditing(true)}
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.72 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: reduceMotion
+                  ? { duration: 0.15 }
+                  : { type: "spring", stiffness: 240, damping: 14, delay: 1.52 },
+              }}
+              exit={{
+                opacity: 0,
+                y: 8,
+                scale: 0.92,
+                transition: { duration: 0.18 },
+              }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.96 }}
+              className="mt-8 rounded-full bg-[#ff4f12] px-8 py-3 text-lg font-black text-white outline-none focus-visible:ring-4 focus-visible:ring-orange-200"
+            >
+              编辑名片
+            </motion.button>
+          ) : (
+            <motion.div
+              key="done"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mt-8 flex flex-col items-center gap-2"
+            >
+              <ContinueButton
+                onClick={() => {
+                  onChange({
+                    ...form,
+                    username: form.username.trim(),
+                    chineseName: form.chineseName.trim(),
+                  });
+                  onDone();
+                }}
+                label="我填好了"
+                disabled={!usernameValid || !nameValid}
+                wide
               />
-              <p className="mt-3 text-center text-xs font-bold text-zinc-300">提交头像</p>
-            </div>
-            <div className="space-y-4">
-              <label className="block">
-                <span className="mb-1 block text-sm font-black">姓名:</span>
-                <input
-                  value={form.chineseName}
-                  maxLength={40}
-                  onChange={(event) => onChange({ ...form, chineseName: event.target.value })}
-                  placeholder="你的名字"
-                  className="font-qihei h-11 w-full rounded-full border-0 bg-zinc-100 px-5 font-bold outline-none focus:ring-4 focus:ring-orange-100"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-sm font-black">英文名:</span>
-                <input
-                  value={form.englishName}
-                  maxLength={40}
-                  onChange={(event) => onChange({ ...form, englishName: event.target.value })}
-                  placeholder="Your name"
-                  className="font-platform h-11 w-full rounded-full border-0 bg-zinc-100 px-5 font-bold outline-none focus:ring-4 focus:ring-orange-100"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-sm font-black">年级:</span>
-                <input
-                  value={form.grade}
-                  maxLength={20}
-                  onChange={(event) => onChange({ ...form, grade: event.target.value })}
-                  placeholder="例如 2026"
-                  className="font-qihei h-11 w-full rounded-full border-0 bg-zinc-100 px-5 font-bold outline-none focus:ring-4 focus:ring-orange-100"
-                />
-              </label>
-              <div>
-                <span className="mb-1 block text-sm font-black">用户名:</span>
-                <div className="font-platform flex h-11 items-center rounded-full bg-zinc-100 px-5 font-bold text-zinc-500">{username}</div>
-                <p className="mt-1 text-[10px] font-bold text-zinc-300">登录用户名不可修改</p>
-              </div>
-              <label className="block">
-                <span className="mb-1 block text-sm font-black">一句话介绍:</span>
-                <textarea
-                  value={form.bio}
-                  maxLength={80}
-                  onChange={(event) => onChange({ ...form, bio: event.target.value })}
-                  placeholder="告诉大家一点关于你的事"
-                  className="min-h-20 w-full resize-none rounded-xl border-0 bg-zinc-100 px-4 py-3 font-bold outline-none focus:ring-4 focus:ring-orange-100"
-                />
-                <span className="mt-1 block text-right text-[10px] font-bold text-zinc-300">{[...form.bio].length}/80</span>
-              </label>
-            </div>
-          </div>
-        </motion.div>
-        <ContinueButton onClick={onDone} label="我填好了" wide />
+              <p className="font-qihei text-xs font-medium text-zinc-300">
+                姓名和用户名都需要填写 · 用户名至少 2 个字符且不能包含空格
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </SceneShell>
   );
@@ -639,7 +625,7 @@ function FinalPreview({
           <motion.p layoutId="result-label" transition={spring} className="text-sm font-black uppercase tracking-[0.22em] text-[#ff4f12]">
             Design complete
           </motion.p>
-          <motion.h1 layoutId="hero-title" transition={spring} className="mt-4 text-[clamp(3.5rem,8vw,7rem)] font-black leading-[0.86] tracking-[-0.075em]">
+          <motion.h1 layoutId="hero-title" transition={spring} className="mt-4 text-[clamp(3.5rem,8vw,7rem)] font-black leading-[0.86] tracking-[0.015em]">
             This is<br />your space.
           </motion.h1>
           <p className="mt-6 max-w-lg text-base font-medium leading-relaxed text-zinc-500">
@@ -675,7 +661,7 @@ function FinalPreview({
             </div>
             <div className="p-6">
               <p className="text-xs font-black text-[#ff4f12]">{habitatWords.join(" · ")}</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.06em]">{form.englishName || form.chineseName || username}</h2>
+              <h2 className="mt-2 text-3xl font-black tracking-normal">{form.englishName || form.chineseName || username}</h2>
               <p className="mt-2 text-sm font-medium text-zinc-500">{form.bio || "你的第一场 MSA 展览"}</p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {selfWords.map((word) => (
@@ -697,8 +683,9 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
   const [selfWords, setSelfWords] = useState(person.selfWords || []);
   const [answers, setAnswers] = useState<Record<string, string>>(person.exhibitionAnswers || {});
   const [form, setForm] = useState<ProfileForm>({
+    username: "",
     englishName: person.englishName || "",
-    chineseName: person.chineseName || "",
+    chineseName: "",
     grade: person.grade || "",
     bio: person.bio || "",
     avatarUrl: person.avatarUrl || "",
@@ -724,6 +711,7 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          username: form.username,
           englishName: form.englishName || null,
           chineseName: form.chineseName || null,
           grade: form.grade || null,
@@ -776,7 +764,7 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
               <Brand>Your first Exhibition in MSA</Brand>
               <div className="mx-auto grid min-h-[calc(100svh-10rem)] max-w-5xl items-center gap-12 sm:grid-cols-2">
                 <div className="text-center opacity-30" aria-disabled="true">
-                  <h2 className="text-[clamp(2.8rem,6vw,5rem)] font-black tracking-[-0.07em]">Explore</h2>
+                  <h2 className="text-[clamp(2.8rem,6vw,5rem)] font-black tracking-[0.015em]">Explore</h2>
                   <p className="mt-2 text-2xl font-black">The Exhibition</p>
                   <p className="mt-5 text-sm font-bold">如果你想看看学长学姐的展览？</p>
                   <span className="mt-6 inline-block rounded-full border-2 border-zinc-300 px-4 py-2 text-xs font-black">即将开放</span>
@@ -790,7 +778,7 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
                   transition={spring}
                   className="group text-center outline-none focus-visible:ring-4 focus-visible:ring-orange-200"
                 >
-                  <h2 className="text-[clamp(2.8rem,6vw,5rem)] font-black tracking-[-0.07em]">Design</h2>
+                  <h2 className="text-[clamp(2.8rem,6vw,5rem)] font-black tracking-[0.015em]">Design</h2>
                   <p className="mt-2 text-2xl font-black">Your Exhibition</p>
                   <p className="mt-5 text-sm font-bold">设计属于自己在探月的第一个展览吧！</p>
                   <span className="mx-auto mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#ff4f12] text-white transition-transform group-hover:translate-y-1">
@@ -850,12 +838,11 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
           {scene === WHO_AM_I && (
             <IntroScene sceneKey="who-am-i" title="Who am I ?" subtitle="我是谁？" onNext={next} />
           )}
-          {scene === CARD_INVITE && <CardInviteScene form={form} username={person.username} onNext={next} />}
-          {scene === CARD_EDIT && <CardEditorScene form={form} username={person.username} onChange={setForm} onDone={next} />}
+          {scene === CARD_INVITE && <CardInviteScene form={form} onChange={setForm} onDone={next} />}
           {scene === SELF_INTRO && (
             <IntroScene
               sceneKey="self-intro"
-              brand={`${person.username}.adj`}
+              brand={`${form.username}.adj`}
               title="Describe Yourself"
               subtitle="你会用什么词形容自己？"
               onNext={next}
@@ -865,7 +852,7 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
             <WordPicker
               title="Describe Yourself"
               subtitle="你会用什么词形容自己？"
-              brand={`${person.username}.adj`}
+              brand={`${form.username}.adj`}
               words={SELF_WORDS}
               selected={selfWords}
               onSelectedChange={setSelfWords}
@@ -874,11 +861,11 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
           )}
           {scene === SELF_RESULT && (
             <SceneShell sceneKey="self-result">
-              <Brand>{person.username}.adj</Brand>
+              <Brand>{form.username}.adj</Brand>
               <div className="mx-auto flex min-h-[calc(100svh-10rem)] max-w-6xl flex-col items-end justify-center text-right">
                 <motion.div layoutId={`word-${selfWords[0]}`} transition={spring}>
-                  <h1 className="text-[clamp(4rem,12vw,10rem)] font-black leading-[0.84] tracking-[-0.08em]">
-                    {person.username}.adj
+                  <h1 className="text-[clamp(4rem,12vw,10rem)] font-black leading-[0.84] tracking-normal">
+                    {form.username}.adj
                   </h1>
                 </motion.div>
                 <p className="mt-6 text-sm font-medium">{selfWords.join(" · ")} · 形容词</p>
@@ -891,7 +878,7 @@ export default function ExhibitionDesigner({ person }: ExhibitionDesignerProps) 
           {scene === FINAL_PREVIEW && (
             <FinalPreview
               form={form}
-              username={person.username}
+              username={form.username}
               habitatWords={habitatWords}
               selfWords={selfWords}
               code={person.code}

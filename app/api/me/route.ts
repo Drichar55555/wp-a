@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyStudentSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/app/generated/prisma/client";
 
+const MAX_USERNAME_LENGTH = 40;
 const MAX_NAME_LENGTH = 40;
 const MAX_GRADE_LENGTH = 20;
 const MAX_BIO_LENGTH = 80;
@@ -76,6 +78,7 @@ export async function GET() {
     select: {
       id: true,
       code: true,
+      username: true,
       englishName: true,
       chineseName: true,
       grade: true,
@@ -114,6 +117,7 @@ export async function PATCH(_request: NextRequest) {
   }
 
   const {
+    username,
     englishName,
     chineseName,
     grade,
@@ -124,6 +128,21 @@ export async function PATCH(_request: NextRequest) {
     exhibitionAnswers,
     exhibitionCompleted,
   } = body;
+
+  const normalizedUsername =
+    typeof username === "string" ? username.trim() : username;
+  if (
+    normalizedUsername !== undefined &&
+    (typeof normalizedUsername !== "string" ||
+      codePointLength(normalizedUsername) < 2 ||
+      codePointLength(normalizedUsername) > MAX_USERNAME_LENGTH ||
+      /[\s/]/u.test(normalizedUsername))
+  ) {
+    return NextResponse.json(
+      { error: "用户名需为 2–40 个字符，且不能包含空格或斜杠" },
+      { status: 400 }
+    );
+  }
 
   for (const [value, field, maxLength] of [
     [englishName, "englishName", MAX_NAME_LENGTH],
@@ -186,48 +205,67 @@ export async function PATCH(_request: NextRequest) {
 
   const person = await prisma.person.findUnique({
     where: { id: session.personId },
-    select: { avatarUrl: true },
+    select: { avatarUrl: true, exhibitionCompleted: true },
   });
   const effectiveAvatarUrl =
     normalizedAvatarUrl !== undefined ? normalizedAvatarUrl : person?.avatarUrl;
-  const published = !!effectiveAvatarUrl;
+  const effectiveExhibitionCompleted =
+    exhibitionCompleted !== undefined
+      ? exhibitionCompleted
+      : person?.exhibitionCompleted;
+  const published = !!effectiveAvatarUrl || !!effectiveExhibitionCompleted;
 
-  const updated = await prisma.person.update({
-    where: { id: session.personId },
-    select: {
-      id: true,
-      code: true,
-      englishName: true,
-      chineseName: true,
-      grade: true,
-      bio: true,
-      avatarUrl: true,
-      habitatWords: true,
-      selfWords: true,
-      exhibitionAnswers: true,
-      exhibitionCompleted: true,
-      published: true,
-      images: { orderBy: { sort: "asc" } },
-    },
-    data: {
-      ...(englishName !== undefined && { englishName }),
-      ...(chineseName !== undefined && { chineseName }),
-      ...(grade !== undefined && { grade }),
-      ...(bio !== undefined && { bio }),
-      ...(normalizedAvatarUrl !== undefined && {
-        avatarUrl: normalizedAvatarUrl,
-      }),
-      ...(habitatWords !== undefined && {
-        habitatWords: habitatWords.map((word) => word.trim()),
-      }),
-      ...(selfWords !== undefined && {
-        selfWords: selfWords.map((word) => word.trim()),
-      }),
-      ...(exhibitionAnswers !== undefined && { exhibitionAnswers }),
-      ...(exhibitionCompleted !== undefined && { exhibitionCompleted }),
-      published,
-    },
-  });
+  try {
+    const updated = await prisma.person.update({
+      where: { id: session.personId },
+      select: {
+        id: true,
+        code: true,
+        username: true,
+        englishName: true,
+        chineseName: true,
+        grade: true,
+        bio: true,
+        avatarUrl: true,
+        habitatWords: true,
+        selfWords: true,
+        exhibitionAnswers: true,
+        exhibitionCompleted: true,
+        published: true,
+        images: { orderBy: { sort: "asc" } },
+      },
+      data: {
+        ...(normalizedUsername !== undefined && { username: normalizedUsername }),
+        ...(englishName !== undefined && { englishName }),
+        ...(chineseName !== undefined && { chineseName }),
+        ...(grade !== undefined && { grade }),
+        ...(bio !== undefined && { bio }),
+        ...(normalizedAvatarUrl !== undefined && {
+          avatarUrl: normalizedAvatarUrl,
+        }),
+        ...(habitatWords !== undefined && {
+          habitatWords: habitatWords.map((word) => word.trim()),
+        }),
+        ...(selfWords !== undefined && {
+          selfWords: selfWords.map((word) => word.trim()),
+        }),
+        ...(exhibitionAnswers !== undefined && { exhibitionAnswers }),
+        ...(exhibitionCompleted !== undefined && { exhibitionCompleted }),
+        published,
+      },
+    });
 
-  return NextResponse.json({ ok: true, person: updated });
+    return NextResponse.json({ ok: true, person: updated });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { error: "这个用户名已经被使用，请换一个" },
+        { status: 409 }
+      );
+    }
+    throw error;
+  }
 }
