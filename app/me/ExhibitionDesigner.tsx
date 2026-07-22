@@ -59,6 +59,16 @@ const SELF_WORDS = [
   "认真",
   "浪漫",
 ];
+const WORD_TRACK_STEPS = [74, 68, 79, 71, 76, 69, 80, 72];
+const WORD_POOL_EDGE_SPACE = 64;
+
+function getWordTrackTop(slot: number) {
+  let top = WORD_POOL_EDGE_SPACE;
+  for (let index = 0; index < slot; index += 1) {
+    top += WORD_TRACK_STEPS[index % WORD_TRACK_STEPS.length];
+  }
+  return top;
+}
 const QUESTIONS = [
   "你最想住在哪里",
   "你最显著的特点是什么",
@@ -230,52 +240,105 @@ function WordPicker({
 }) {
   const [showCustom, setShowCustom] = useState(false);
   const [custom, setCustom] = useState("");
+  const [poolWords, setPoolWords] = useState(() =>
+    Array.from(new Set([...words, ...selected])),
+  );
+  const [wordSlots, setWordSlots] = useState<Record<string, number>>(() =>
+    Object.fromEntries(
+      Array.from(new Set([...words, ...selected]))
+        .filter((word) => !selected.includes(word))
+        .map((word, index) => [word, index]),
+    ),
+  );
+  const [selectedSources, setSelectedSources] = useState<Record<string, number>>({});
 
-  function toggleWord(word: string) {
-    if (selected.includes(word)) {
-      onSelectedChange(selected.filter((item) => item !== word));
-    } else if (selected.length < 5) {
+  function selectWord(word: string, sourceIndex: number) {
+    if (!selected.includes(word) && selected.length < 5) {
+      setSelectedSources((current) => ({ ...current, [word]: sourceIndex }));
       onSelectedChange([...selected, word]);
     }
   }
 
+  function removeWord(word: string) {
+    setWordSlots((current) => {
+      if (current[word] !== undefined) return current;
+      const nextSlot = Math.max(-1, ...Object.values(current)) + 1;
+      return { ...current, [word]: nextSlot };
+    });
+    onSelectedChange(selected.filter((item) => item !== word));
+  }
+
   function addCustom() {
     const value = custom.trim();
-    if (!value || [...value].length > 20 || selected.length >= 5) return;
-    if (!selected.includes(value)) onSelectedChange([...selected, value]);
+    if (!value || [...value].length > 20) return;
+    setPoolWords((current) =>
+      current.includes(value) ? current : [...current, value],
+    );
+    setWordSlots((current) => {
+      if (current[value] !== undefined) return current;
+      const nextSlot = Math.max(-1, ...Object.values(current)) + 1;
+      return { ...current, [value]: nextSlot };
+    });
     setCustom("");
     setShowCustom(false);
   }
 
+  const availableWords = poolWords.filter((word) => !selected.includes(word));
+  const highestSlot = Math.max(
+    0,
+    ...availableWords.map((word) => wordSlots[word] ?? 0),
+  );
+  const poolHeight = Math.max(
+    352,
+    getWordTrackTop(highestSlot) + WORD_POOL_EDGE_SPACE,
+  );
+
   return (
     <SceneShell sceneKey={`${brand}-picker`}>
       <Brand>{brand}</Brand>
-      <div className="mx-auto flex min-h-[calc(100svh-10rem)] max-w-6xl flex-col pb-24 sm:pb-0">
-        <header className="grid gap-6 pt-1 sm:grid-cols-[1fr_auto] sm:items-start">
-          <div className="max-w-md">
-            <p className="font-qihei text-xs font-medium text-zinc-300">这些是学长学姐给自己的形容，如果你觉得符合自己可以</p>
-            <p className="font-qihei mt-1 text-sm font-extrabold">点击选择</p>
-            <p className="font-qihei text-xs font-medium text-zinc-300">当然你也可以</p>
-            <div className="mt-2 flex items-center gap-3">
+      <div className="mx-auto flex min-h-[calc(100svh-10rem)] max-w-7xl flex-col pb-24 sm:pb-0">
+        <header className="grid min-w-0 gap-8 pt-1 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)] sm:items-start">
+          <div className="min-w-0 max-w-xl">
+            <p className="font-qihei text-xs font-medium text-zinc-300 sm:text-sm">这些是学长学姐给自己的形容，如果你觉得符合自己可以</p>
+            <p className="font-qihei mt-1 text-base font-extrabold">点击选择</p>
+            <p className="font-qihei text-sm font-medium text-zinc-300">当然你也可以</p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
               {showCustom ? (
-                <div className="flex items-center gap-2">
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    addCustom();
+                  }}
+                  className="flex flex-wrap items-center gap-2"
+                >
                   <input
                     autoFocus
                     value={custom}
                     maxLength={20}
                     onChange={(event) => setCustom(event.target.value)}
-                    onKeyDown={(event) => event.key === "Enter" && addCustom()}
                     placeholder="输入你的词"
+                    aria-label="新词条"
                     className="font-qihei h-12 w-44 rounded-full border-2 border-black px-5 text-base font-medium outline-none focus:ring-4 focus:ring-orange-100"
                   />
                   <button
-                    type="button"
-                    onClick={addCustom}
+                    type="submit"
+                    disabled={!custom.trim()}
                     className="font-qihei h-12 rounded-full bg-black px-6 text-sm font-semibold text-white outline-none focus-visible:ring-4 focus-visible:ring-zinc-300"
                   >
-                    添加
+                    放入词条池
                   </button>
-                </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustom("");
+                      setShowCustom(false);
+                    }}
+                    aria-label="取消创建词条"
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-2xl font-medium text-zinc-400 outline-none hover:bg-zinc-100 hover:text-black focus-visible:ring-4 focus-visible:ring-zinc-200"
+                  >
+                    ×
+                  </button>
+                </form>
               ) : (
                 <button
                   type="button"
@@ -287,47 +350,124 @@ function WordPicker({
               )}
               <span className="font-platform text-base font-black">{selected.length}/5</span>
             </div>
+
+            <motion.div
+              layout
+              className="selected-word-strip mt-5 flex min-h-11 w-full max-w-full flex-nowrap items-start gap-2 overflow-x-auto pb-2 sm:w-max sm:max-w-none sm:overflow-visible"
+              aria-label={`已选择 ${selected.length} 个词条`}
+            >
+              <AnimatePresence initial={false} mode="popLayout">
+                {selected.map((word) => (
+                  <motion.div
+                    layoutId={`${brand}-word-${word}-${selectedSources[word] ?? 0}`}
+                    key={word}
+                    initial={{ opacity: 0, scale: 0.75 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={spring}
+                    className="font-qihei flex h-11 shrink-0 items-center rounded-full bg-zinc-200 pl-4 text-sm font-extrabold text-zinc-600 shadow-[0_8px_24px_rgba(161,161,170,0.18)] sm:text-base"
+                  >
+                    <span>{word}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeWord(word)}
+                      aria-label={`取消选择 ${word}`}
+                      className="ml-0.5 flex h-11 w-11 items-center justify-center rounded-full text-xl leading-none text-zinc-400 outline-none hover:bg-zinc-300 hover:text-zinc-700 focus-visible:ring-2 focus-visible:ring-zinc-500"
+                    >
+                      ×
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           </div>
-          <motion.h1
-            layoutId="question-title"
-            transition={spring}
-            className="font-platform max-w-2xl text-right text-[clamp(2rem,4.8vw,4.5rem)] font-black leading-[0.9] tracking-normal"
-          >
-            {title}
-          </motion.h1>
-          <p className="font-qihei max-w-lg text-right text-xs font-medium text-zinc-500 sm:col-start-2 sm:text-sm">
-            {subtitle}
-          </p>
+          <div className="pt-2 text-right sm:pt-10">
+            <span className="sr-only">{title}</span>
+            <motion.h1
+              layoutId="question-title"
+              transition={spring}
+              className="font-qihei ml-auto max-w-lg text-[clamp(1.45rem,3vw,2.35rem)] font-extrabold leading-tight tracking-normal"
+            >
+              {subtitle}
+            </motion.h1>
+          </div>
         </header>
 
-        <div className="my-auto grid grid-cols-2 gap-x-4 gap-y-5 py-12 sm:grid-cols-3 sm:gap-x-14 sm:gap-y-10">
-          {words.map((word, index) => {
-            const active = selected.includes(word);
-            return (
-              <motion.button
-                layoutId={`word-${word}`}
-                key={word}
-                type="button"
-                onClick={() => toggleWord(word)}
-                aria-pressed={active}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.96 }}
-                transition={spring}
-                className={`font-qihei min-h-14 rounded-full px-6 text-base font-extrabold outline-none transition-colors focus-visible:ring-4 focus-visible:ring-orange-200 sm:min-h-16 sm:text-lg ${
-                  active
-                    ? "bg-[#ff4f12] text-white"
-                    : index % 3 === 1
-                      ? "bg-zinc-100 text-zinc-500 hover:bg-zinc-300"
-                      : "bg-zinc-200 text-zinc-500 hover:bg-zinc-300"
-                }`}
-              >
-                {word}
-              </motion.button>
-            );
-          })}
+        <div
+          className="relative -mx-5 my-auto min-h-[22rem] overflow-hidden py-8 sm:-mx-10 sm:min-h-[25rem]"
+          aria-label="自由滚动词条池"
+          style={{ height: `${poolHeight}px` }}
+        >
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent sm:w-28" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent sm:w-28" />
+          <AnimatePresence initial={false}>
+            {availableWords.map((word) => {
+              const wordIndex = poolWords.indexOf(word);
+              const duration = 15 + ((wordIndex * 5) % 13);
+              const delay = -(3 + ((wordIndex * 4.25) % duration));
+              const horizontalOffset = (wordIndex * 17) % 43;
+              const slot = wordSlots[word] ?? 0;
+              const trackTop = getWordTrackTop(slot);
+              const widthClass =
+                wordIndex % 3 === 0
+                  ? "w-[34vw] sm:w-48"
+                  : wordIndex % 3 === 1
+                    ? "w-[28vw] sm:w-36"
+                    : "w-[40vw] sm:w-56";
+              return (
+                <motion.div
+                  key={word}
+                  className="exhibition-word-track pointer-events-none absolute inset-0"
+                  data-direction={wordIndex % 2 === 0 ? "forward" : "reverse"}
+                  style={{
+                    animationDuration: `${duration}s`,
+                    animationDelay: `${delay}s`,
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {[0, 1, 2, 3].map((copyIndex) => (
+                    <div
+                      key={copyIndex}
+                      className="absolute -translate-y-1/2 px-4 sm:px-8"
+                      style={{
+                        left: `${horizontalOffset + copyIndex * 50}vw`,
+                        top: `${trackTop}px`,
+                      }}
+                    >
+                      <motion.button
+                        layoutId={`${brand}-word-${word}-${copyIndex}`}
+                        type="button"
+                        onClick={(event) => {
+                          const track = event.currentTarget.closest<HTMLElement>(".exhibition-word-track");
+                          if (track) track.style.animationPlayState = "paused";
+                          selectWord(word, copyIndex);
+                        }}
+                        disabled={selected.length >= 5}
+                        aria-label={`选择词条 ${word}，副本 ${copyIndex + 1}`}
+                        initial={{ opacity: 0, x: 30, scale: 0.85 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -30, scale: 0.85 }}
+                        whileHover={{ y: -3, scale: 1.04 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={spring}
+                        className={`font-qihei pointer-events-auto h-14 shrink-0 truncate rounded-full px-5 text-base font-extrabold text-zinc-600 outline-none focus-visible:ring-4 focus-visible:ring-orange-200 disabled:cursor-not-allowed disabled:opacity-40 sm:px-8 sm:text-lg ${widthClass} ${
+                          wordIndex % 3 === 1 ? "bg-zinc-100" : "bg-zinc-200"
+                        }`}
+                      >
+                        {word}
+                      </motion.button>
+                    </div>
+                  ))}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
-      <div className="fixed bottom-7 right-5 sm:bottom-10 sm:right-10">
+      <div className="fixed bottom-7 right-5 z-20 sm:bottom-10 sm:right-10">
         <ContinueButton onClick={onDone} label="我选好了" disabled={selected.length === 0} wide />
       </div>
     </SceneShell>
